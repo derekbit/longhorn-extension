@@ -453,6 +453,7 @@ export default {
     font-size: 13px;
     margin-top: 5px;
     color: var(--input-label);
+    max-width: 960px;
 
     :deep() {
       * {
