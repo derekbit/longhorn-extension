@@ -59,13 +59,13 @@ export function init($plugin: any, store: any) {
   headers(LONGHORN_RESOURCES.RECURRING_JOBS, RECURRING_JOBS_HEADER);
 
   // Settings
-  virtualType({
-    name: LONGHORN_PAGES.SETTINGS,
-    route: {
-      name: `c-cluster-${PRODUCT_NAME}-${LONGHORN_RESOURCES.SETTINGS}`,
-      params: { product: PRODUCT_NAME },
-    },
+  configureType(LONGHORN_RESOURCES.SETTINGS, {
+    isCreatable: false,
+    isEditable: true,
+    canYaml: false,
+    showListMasthead: false,
   });
+  mapType(LONGHORN_RESOURCES.SETTINGS, LONGHORN_PAGES.SETTINGS);
 
   // ----- Backup and Restore group pages ----- //
   // Backup Targets
@@ -109,7 +109,7 @@ export function init($plugin: any, store: any) {
     LONGHORN_PAGES.DASHBOARD,
     LONGHORN_RESOURCES.NODES,
     LONGHORN_RESOURCES.RECURRING_JOBS,
-    LONGHORN_PAGES.SETTINGS,
+    LONGHORN_RESOURCES.SETTINGS,
   ]);
   basicType(
     [
@@ -124,4 +124,5 @@ export function init($plugin: any, store: any) {
   weightType(LONGHORN_PAGES.DASHBOARD, 999, true);
   weightType(LONGHORN_RESOURCES.NODES, 800, true);
   weightType(LONGHORN_RESOURCES.RECURRING_JOBS, 700, true);
+  weightType(LONGHORN_RESOURCES.SETTINGS, 100, true);
 }

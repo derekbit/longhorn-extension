@@ -137,3 +137,4 @@ longhorn:
     title: Settings
     fetchError: 'Failed to load settings from Longhorn API. Details: %{error}'
     apply: Apply Changes
+    noResults: No settings found matching your search

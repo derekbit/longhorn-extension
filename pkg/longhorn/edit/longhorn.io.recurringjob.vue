@@ -339,7 +339,7 @@ export default {
       @cancel="done"
       @error="onError"
     >
-      <NameNsDescription :value="value" :mode="mode" :force-namespace="LONGHORN_NAMESPACE" :namespaced="false" />
+      <NameNsDescription :value="value" :mode="mode" :force-namespace="LONGHORN_NAMESPACE" />
       <Tabbed side-tabs :resource="value">
         <Tab name="basics" label-key="longhorn.recurringJob.tab.basics" :error="tabErrors.basics">
           <div class="row mb-20">

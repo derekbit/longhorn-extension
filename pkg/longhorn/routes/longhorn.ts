@@ -1,7 +1,5 @@
 import { PRODUCT_NAME } from '@longhorn/types/longhorn';
-import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 import Dashboard from '@longhorn/pages/c/_cluster/index.vue';
-import Settings from '@longhorn/pages/c/_cluster/_resource/settings.vue';
 import ListLonghornResource from '@longhorn/pages/c/_cluster/_resource/index.vue';
 import CreateLonghornResource from '@longhorn/pages/c/_cluster/_resource/create.vue';
 import ViewLonghornResourced from '@longhorn/pages/c/_cluster/_resource/_id.vue';
@@ -12,12 +10,6 @@ const routes = [
     name: `c-cluster-${PRODUCT_NAME}-dashboard`,
     path: `/c/:cluster/${PRODUCT_NAME}`,
     component: Dashboard,
-    meta: { product: PRODUCT_NAME, pkg: PRODUCT_NAME },
-  },
-  {
-    name: `c-cluster-${PRODUCT_NAME}-${LONGHORN_RESOURCES.SETTINGS}`,
-    path: `/c/:cluster/${PRODUCT_NAME}/${LONGHORN_RESOURCES.SETTINGS}`,
-    component: Settings,
     meta: { product: PRODUCT_NAME, pkg: PRODUCT_NAME },
   },
   // registering routes for list/edit/create views
