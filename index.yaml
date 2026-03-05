@@ -12,12 +12,12 @@ entries:
       catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
     apiVersion: v2
     appVersion: 0.1.0
-    created: "2026-02-03T04:20:38.912985863Z"
+    created: "2026-03-05T10:15:32.739801482Z"
     description: longhorn plugin
-    digest: 49939a7e7fee266bc70886c28eb05e69c474b29c55c88abfd777e84447b266a8
+    digest: 0708fb2659501a32c290c10fdd19134b2649de168dfea0071eec1bfae732ab2a
     name: longhorn
     type: application
     urls:
     - assets/longhorn/longhorn-0.1.0.tgz
     version: 0.1.0
-generated: "2026-02-03T04:20:38.91264664Z"
+generated: "2026-03-05T10:15:32.738710233Z"

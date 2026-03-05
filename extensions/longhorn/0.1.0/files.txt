@@ -14,6 +14,8 @@ plugin/longhorn-0.1.0.umd.min.60.js
 plugin/longhorn-0.1.0.umd.min.60.js.map
 plugin/longhorn-0.1.0.umd.min.616.js
 plugin/longhorn-0.1.0.umd.min.616.js.map
+plugin/longhorn-0.1.0.umd.min.694.js
+plugin/longhorn-0.1.0.umd.min.694.js.map
 plugin/longhorn-0.1.0.umd.min.detail.js
 plugin/longhorn-0.1.0.umd.min.detail.js.map
 plugin/longhorn-0.1.0.umd.min.dialog.js
