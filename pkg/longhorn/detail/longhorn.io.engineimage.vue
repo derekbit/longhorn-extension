@@ -36,7 +36,7 @@ const { pending: fetchStatePending } = useFetch(async () => {
 const nodeDeploymentMap = computed(() => {
   const map = props.value?.status?.nodeDeploymentMap;
 
-  if (!map) return '-';
+  if (!map) return '—';
 
   const result = Object.entries(map)
     .filter(([, val]) => val === true)
@@ -47,7 +47,7 @@ const nodeDeploymentMap = computed(() => {
 });
 
 function displayValue(val) {
-  return val === null || val === undefined || String(val).trim() === '' ? '-' : val;
+  return val === null || val === undefined || String(val).trim() === '' ? '—' : val;
 }
 </script>
 

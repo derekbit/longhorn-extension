@@ -48,7 +48,7 @@ const rows = computed(() =>
       key: label,
       label,
       value,
-      displayValue: isEmpty ? '-' : props.chartData.suffix ? `${value} ${props.chartData.suffix}` : `${value}`,
+      displayValue: isEmpty ? '—' : props.chartData.suffix ? `${value} ${props.chartData.suffix}` : `${value}`,
       isEmpty,
       isLinkable,
       color: dataset.value.backgroundColor[index],

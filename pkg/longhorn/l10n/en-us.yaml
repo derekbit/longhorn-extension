@@ -64,11 +64,39 @@ longhorn:
       fileSystem: File system
       block: Block
   volume:
-    healthy: Healthy
-    degraded: Degraded
-    inProgress: In Progress
-    faulty: Faulty
-    detached: Detached
+    state:
+      healthy: Healthy
+      degraded: Degraded
+      inProgress: In Progress
+      faulty: Faulty
+      detached: Detached
+    table:
+      header:
+        health: Health
+        size: Size
+        actualSize: Actual Size
+        dataEngine: Data Engine
+        pvPvc: PV/PVC
+        node: Attached To
+        lastBackupAt: Last Backup
+    tab:
+      basics: Basics
+      advanced: Advanced
+    form:
+      unit: Unit
+      numberOfReplicas: Number of Replicas
+      frontend: Frontend
+      dataLocality: Data Locality
+      accessMode: Access Mode
+      backingImage: Backing Image
+      dataSource:
+        label: Data Source
+        tooltip: 'Choose data source from existing volume or snapshot. <br/>Longhorn will clone the volume data from selected data source.'
+      sourceVolume: Source Volume
+      sourceSnapshot: Source Snapshot
+      encrypted: Encrypted
+      nodeTag: Node Tag
+      diskTag: Disk Tag
   storage:
     title: storage
     schedulable: Schedulable

@@ -1,7 +1,15 @@
 import { STATE, NAME as NAME_COL, AGE, IMAGE_NAME } from '@shell/config/table-headers';
 
 export const NODES_HEADER = [
-  STATE,
+  {
+    name: 'status',
+    label: 'Status',
+    value: 'nodeStatus',
+    sort: ['nodeStatus.stateDisplay'],
+    search: ['nodeStatus.stateDisplay'],
+    formatter: 'NodeStatus',
+    width: 120,
+  },
   {
     ...NAME_COL,
     width: 200,
@@ -58,6 +66,77 @@ export const NODES_HEADER = [
     labelKey: 'longhorn.node.table.header.tags',
     value: 'spec.tags',
     formatter: 'Tag',
+  },
+  AGE,
+];
+
+export const VOLUMES_HEADER = [
+  STATE,
+  {
+    name: 'health',
+    labelKey: 'longhorn.volume.table.header.health',
+    value: '$.status.state',
+    sort: ['$.status.state', '$.status.robustness'],
+    formatter: 'VolumeHealth',
+    width: 120,
+  },
+  NAME_COL,
+  {
+    name: 'size',
+    labelKey: 'longhorn.volume.table.header.size',
+    value: '$.spec.size',
+    sort: ['$.spec.size'],
+    formatter: 'Si',
+    align: 'center',
+    width: 100,
+  },
+  {
+    name: 'actualSize',
+    labelKey: 'longhorn.volume.table.header.actualSize',
+    value: '$.status.actualSize',
+    sort: ['$.status.actualSize'],
+    formatter: 'Si',
+    align: 'center',
+    width: 100,
+  },
+  {
+    name: 'dataEngine',
+    labelKey: 'longhorn.volume.table.header.dataEngine',
+    value: '$.spec.dataEngine',
+    sort: ['$.spec.dataEngine'],
+    align: 'center',
+    width: 100,
+  },
+  {
+    name: 'pvPvc',
+    labelKey: 'longhorn.volume.table.header.pvPvc',
+    value: '$.status.kubernetesStatus',
+    formatter: 'VolumePvPvc',
+    align: 'center',
+    width: 100,
+  },
+  {
+    name: 'namespace',
+    labelKey: 'tableHeaders.namespace',
+    value: '$.status.kubernetesStatus.namespace',
+    sort: ['$.status.kubernetesStatus.namespace'],
+    dashIfEmpty: true,
+    align: 'center',
+    width: 100,
+  },
+  {
+    name: 'node',
+    labelKey: 'longhorn.volume.table.header.node',
+    value: '$.status.kubernetesStatus',
+    formatter: 'VolumeNode',
+  },
+  {
+    name: 'lastBackupAt',
+    labelKey: 'longhorn.volume.table.header.lastBackupAt',
+    value: '$.status.lastBackupAt',
+    sort: ['$.status.lastBackupAt'],
+    formatter: 'LiveDate',
+    width: 100,
   },
   AGE,
 ];
@@ -139,6 +218,7 @@ export const RECURRING_JOBS_HEADER = [
     value: '$.spec.cron',
     sort: ['$.spec.cron'],
     search: '$.spec.cron',
+    formatter: 'CronSchedule',
   },
   {
     name: 'retain',

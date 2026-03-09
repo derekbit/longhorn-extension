@@ -10,13 +10,24 @@ export default class SystemRestoreModel extends LonghornModel {
     return out.filter((item) => !forbiddenActions.includes(item.action));
   }
 
+  get systemBackups() {
+    const inStore = this.$rootGetters['currentProduct']?.inStore;
+
+    if (!inStore) {
+      return [];
+    }
+
+    this.$dispatch(`${inStore}/findAll`, { type: LONGHORN_RESOURCES.SYSTEM_BACKUPS }, { root: true });
+
+    return this.$rootGetters[`${inStore}/all`](LONGHORN_RESOURCES.SYSTEM_BACKUPS) || [];
+  }
+
   get version() {
     const backupName = this.spec?.systemBackup;
 
     if (!backupName) return '';
 
-    const systemBackups = this.$getters?.['all']?.(LONGHORN_RESOURCES.SYSTEM_BACKUPS) || [];
-    const matchingBackup = systemBackups.find((backup) => backup.metadata?.name === backupName);
+    const matchingBackup = this.systemBackups.find((backup) => backup.metadata?.name === backupName);
 
     return matchingBackup?.status?.version || '';
   }

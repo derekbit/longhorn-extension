@@ -23,6 +23,64 @@ export default class NodeModel extends LonghornModel {
     return readyCondition?.status?.toLowerCase() === 'false';
   }
 
+  get nodeStatus() {
+    const conditions = this.status?.conditions || [];
+    const readyCond = conditions.find((c) => c.type === 'Ready') || {};
+    const schedulableCond = conditions.find((c) => c.type === 'Schedulable') || {};
+
+    const isReady = readyCond.status === 'True';
+    const isSchedulableCondTrue = schedulableCond.status === 'True';
+
+    const checks = [
+      {
+        key: 'down',
+        name: 'Down',
+        badge: 'bg-error',
+        determine: () => !isReady && readyCond.reason === 'KubernetesNodeNotReady',
+      },
+      {
+        key: 'disabled',
+        name: 'Disabled',
+        badge: 'badge-disabled',
+        determine: () => isReady && this.spec?.allowScheduling === false,
+      },
+      {
+        key: 'autoEvicting',
+        name: 'AutoEvicting',
+        badge: 'bg-warning',
+        determine: () => isReady && this.status?.autoEvicting === true,
+      },
+      {
+        key: 'unschedulable',
+        name: 'Unschedulable',
+        badge: 'bg-warning',
+        determine: () => isReady && !isSchedulableCondTrue,
+      },
+      {
+        key: 'schedulable',
+        name: 'Schedulable',
+        badge: 'bg-success',
+        determine: () => isReady && isSchedulableCondTrue && this.spec?.allowScheduling === true,
+      },
+    ];
+
+    for (const check of checks) {
+      if (check.determine()) {
+        return {
+          stateDisplay: check.name,
+          stateBackground: check.badge,
+          message: schedulableCond.message || readyCond.message || '',
+        };
+      }
+    }
+
+    return {
+      stateDisplay: 'Unknown',
+      stateBackground: 'bg-error',
+      message: readyCond.message || '',
+    };
+  }
+
   get disks() {
     const specDisks = this.spec?.disks || {};
     const statusMap = this.status?.diskStatus || {};

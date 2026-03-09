@@ -28,8 +28,14 @@ export default {
   mixins: [CreateEditView, FormValidation],
 
   props: {
-    mode: { type: String, default: _EDIT },
-    value: { type: Object, required: true },
+    mode: {
+      type: String,
+      default: _EDIT,
+    },
+    value: {
+      type: Object,
+      required: true,
+    },
   },
 
   data() {

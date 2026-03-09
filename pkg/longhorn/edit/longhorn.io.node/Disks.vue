@@ -1,12 +1,12 @@
 <script>
 import { _VIEW } from '@shell/config/query-params';
-import UnitInput from '@shell/components/form/UnitInput.vue';
+import UnitInput from '@shell/components/form/UnitInput';
 import ArrayList from '@shell/components/form/ArrayList';
 import LabelValue from '@shell/components/LabelValue';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@components/Banner/Banner';
 import { RadioGroup } from '@components/Form/Radio';
 import { BadgeState } from '@components/BadgeState';
 import { bytesToGi } from '@longhorn/utils/formatter';
@@ -25,10 +25,22 @@ export default {
     Banner,
   },
   props: {
-    mode: { type: String, required: true },
-    value: { type: Object, required: true },
-    conditions: { type: Object, default: () => ({}) },
-    rules: { type: Object, default: () => ({}) },
+    mode: {
+      type: String,
+      required: true,
+    },
+    value: {
+      type: Object,
+      required: true,
+    },
+    conditions: {
+      type: Object,
+      default: () => ({}),
+    },
+    rules: {
+      type: Object,
+      default: () => ({}),
+    },
   },
   data() {
     return { _VIEW, GiB_UNIT };

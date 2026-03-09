@@ -4,7 +4,7 @@ import { useStore } from 'vuex';
 import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import SortableTable from '@shell/components/SortableTable';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@components/Banner/Banner';
 import { allHash } from '@shell/utils/promise';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 import { DISKS_HEADERS } from '@longhorn/config/table-headers';

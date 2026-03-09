@@ -2,10 +2,10 @@
 import { proxyUrlFromParts } from '@shell/models/service';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
-import Loading from '@shell/components/Loading.vue';
-import AsyncButton from '@shell/components/AsyncButton.vue';
+import Loading from '@shell/components/Loading';
+import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
-import SettingsForm from '@longhorn/components/Settings/SettingsForm.vue';
+import SettingsForm from '@longhorn/components/Settings/SettingsForm';
 
 const CATEGORY_ORDER = ['general', 'snapshot', 'system info', 'orphan', 'backup', 'scheduling', 'danger zone'];
 

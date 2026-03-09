@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
-    "@rancher/shell": "3.0.9-rc.2",
+    "@rancher/shell": "3.0.9-rc.6",
     "chart.js": "4.4.8",
     "marked": "^17.0.4",
     "vue-i18n": "^11.2.8",

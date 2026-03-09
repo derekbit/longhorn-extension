@@ -10,7 +10,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
-import UnitInput from '@shell/components/form/UnitInput.vue';
+import UnitInput from '@shell/components/form/UnitInput';
 import { set } from '@shell/utils/object';
 
 export default {

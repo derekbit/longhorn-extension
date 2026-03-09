@@ -6,8 +6,8 @@ import Events from '@longhorn/components/Dashboard/Events';
 import LiveDate from '@shell/components/formatter/LiveDate';
 import { allHash } from '@shell/utils/promise';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
-
 import { bytesToGi } from '@longhorn/utils/formatter';
+import { GiB_UNIT } from '@longhorn/types/units';
 
 const NODE_STATUS = {
   DOWN: 'Down',
@@ -139,11 +139,11 @@ export default {
       });
 
       const volumeLabels = [
-        this.t('longhorn.volume.healthy'),
-        this.t('longhorn.volume.degraded'),
-        this.t('longhorn.volume.inProgress'),
-        this.t('longhorn.volume.faulty'),
-        this.t('longhorn.volume.detached'),
+        this.t('longhorn.volume.state.healthy'),
+        this.t('longhorn.volume.state.degraded'),
+        this.t('longhorn.volume.state.inProgress'),
+        this.t('longhorn.volume.state.faulty'),
+        this.t('longhorn.volume.state.detached'),
       ];
 
       return {
@@ -189,7 +189,7 @@ export default {
             ],
           },
         ],
-        suffix: 'Gi',
+        suffix: GiB_UNIT,
         resourceNameKey: 'longhorn.storage.title',
       };
     },
@@ -263,7 +263,7 @@ export default {
             ],
           },
         ],
-        suffix: 'Gi',
+        suffix: GiB_UNIT,
         resourceNameKey: 'longhorn.storage.title',
       };
     },

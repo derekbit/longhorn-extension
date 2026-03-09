@@ -1,5 +1,5 @@
 <script setup>
-import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
+import ResourceDetail from '@shell/components/ResourceDetail/index';
 </script>
 
 <template>

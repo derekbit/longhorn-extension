@@ -1,5 +1,5 @@
 <script setup>
-import ResourceList from '@shell/components/ResourceList/index.vue';
+import ResourceList from '@shell/components/ResourceList/index';
 </script>
 
 <template>

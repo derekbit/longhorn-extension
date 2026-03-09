@@ -22,13 +22,28 @@ export default class EngineImageModel extends LonghornModel {
   }
 
   get isDefault() {
-    const defaultEngineImageSetting = this.$getters?.['byId']?.(
-      LONGHORN_RESOURCES.SETTINGS,
-      LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE
-    );
-
+    const defaultEngineImageSetting = this.defaultEngineImageSetting;
     const defaultEngineImage = defaultEngineImageSetting?.value;
 
     return this.spec?.image && defaultEngineImage ? this.spec.image === defaultEngineImage : false;
+  }
+
+  get defaultEngineImageSetting() {
+    const inStore = this.$rootGetters['currentProduct']?.inStore;
+
+    if (!inStore) {
+      return null;
+    }
+
+    this.$dispatch(
+      `${inStore}/find`,
+      {
+        type: LONGHORN_RESOURCES.SETTINGS,
+        id: LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE,
+      },
+      { root: true }
+    );
+
+    return this.$rootGetters[`${inStore}/byId`](LONGHORN_RESOURCES.SETTINGS, LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE);
   }
 }

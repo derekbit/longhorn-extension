@@ -7,6 +7,7 @@ import {
   BACKUP_TARGETS_HEADER,
   SYSTEM_BACKUPS_HEADER,
   SYSTEM_RESTORE_HEADER,
+  VOLUMES_HEADER,
 } from './table-headers';
 
 export function init($plugin: any, store: any) {
@@ -49,6 +50,14 @@ export function init($plugin: any, store: any) {
   });
   mapType(LONGHORN_RESOURCES.NODES, LONGHORN_PAGES.NODES);
   headers(LONGHORN_RESOURCES.NODES, NODES_HEADER);
+
+  // Volumes
+  configureType(LONGHORN_RESOURCES.VOLUMES, {
+    isCreatable: true,
+    isEditable: true,
+  });
+  mapType(LONGHORN_RESOURCES.VOLUMES, LONGHORN_PAGES.VOLUMES);
+  headers(LONGHORN_RESOURCES.VOLUMES, VOLUMES_HEADER);
 
   // Recurring Jobs
   configureType(LONGHORN_RESOURCES.RECURRING_JOBS, {
@@ -108,6 +117,7 @@ export function init($plugin: any, store: any) {
   basicType([
     LONGHORN_PAGES.DASHBOARD,
     LONGHORN_RESOURCES.NODES,
+    LONGHORN_RESOURCES.VOLUMES,
     LONGHORN_RESOURCES.RECURRING_JOBS,
     LONGHORN_RESOURCES.SETTINGS,
   ]);
@@ -123,6 +133,7 @@ export function init($plugin: any, store: any) {
   basicType([LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_RESOURCES.INSTANCE_MANAGERS], LONGHORN_GROUP.ADVANCED);
   weightType(LONGHORN_PAGES.DASHBOARD, 999, true);
   weightType(LONGHORN_RESOURCES.NODES, 800, true);
-  weightType(LONGHORN_RESOURCES.RECURRING_JOBS, 700, true);
+  weightType(LONGHORN_RESOURCES.VOLUMES, 700, true);
+  weightType(LONGHORN_RESOURCES.RECURRING_JOBS, 600, true);
   weightType(LONGHORN_RESOURCES.SETTINGS, 100, true);
 }

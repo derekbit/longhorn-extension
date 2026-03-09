@@ -1,6 +1,6 @@
 <script>
 import { RadioGroup } from '@components/Form/Radio';
-import UnitInput from '@shell/components/form/UnitInput.vue';
+import UnitInput from '@shell/components/form/UnitInput';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import ArrayList from '@shell/components/form/ArrayList';
 import { BadgeState } from '@components/BadgeState';
@@ -14,10 +14,22 @@ export default {
     ArrayList,
   },
   props: {
-    mode: { type: String, required: true },
-    value: { type: Object, required: true },
-    conditions: { type: Array, default: () => [] },
-    rules: { type: Object, default: () => ({}) },
+    mode: {
+      type: String,
+      required: true,
+    },
+    value: {
+      type: Object,
+      required: true,
+    },
+    conditions: {
+      type: Array,
+      default: () => [],
+    },
+    rules: {
+      type: Object,
+      default: () => ({}),
+    },
   },
   computed: {
     nodeSchedulingOptions() {
