@@ -300,14 +300,14 @@ export const SYSTEM_BACKUPS_HEADER = [
   NAME_COL,
   {
     name: 'version',
-    label: 'Version',
+    labelKey: 'longhorn.systemBackup.table.header.version',
     value: '$.status.version',
     sort: ['$.status.version'],
     search: '$.status.version',
   },
   {
     name: 'state',
-    label: 'State',
+    labelKey: 'longhorn.systemBackup.table.header.state',
     value: '$.status.state',
     sort: ['$.status.state'],
     search: '$.status.state',
@@ -315,10 +315,11 @@ export const SYSTEM_BACKUPS_HEADER = [
 
   {
     name: 'lastSyncedAt',
-    label: 'LastSyncedAt',
+    labelKey: 'longhorn.systemBackup.table.header.lastSyncedAt',
     value: '$.status.lastSyncedAt',
     sort: ['$.status.lastSyncedAt'],
     search: '$.status.lastSyncedAt',
+    formatter: 'LiveDate',
   },
   AGE,
 ];
@@ -328,14 +329,14 @@ export const SYSTEM_RESTORE_HEADER = [
   NAME_COL,
   {
     name: 'version',
-    label: 'Version',
+    labelKey: 'longhorn.systemRestore.table.header.version',
     value: 'version',
     sort: ['version'],
     search: 'version',
   },
   {
     name: 'state',
-    label: 'State',
+    labelKey: 'longhorn.systemRestore.table.header.state',
     value: '$.status.state',
     sort: ['$.status.state'],
     search: '$.status.state',

@@ -138,6 +138,17 @@ longhorn:
     form:
       pollInterval:
         tooltip: Set 0 to disable the polling
+  systemBackup:
+    table:
+      header:
+        version: Version
+        state: State
+        lastSyncedAt: Last Synced At
+  systemRestore:
+    table:
+      header:
+        version: Version
+        state: State
   engineImage:
     title: Engine Image
     table:
