@@ -105,7 +105,7 @@ export const VOLUMES_HEADER = [
     value: '$.spec.dataEngine',
     sort: ['$.spec.dataEngine'],
     align: 'center',
-    width: 100,
+    width: 80,
   },
   {
     name: 'pvPvc',
@@ -374,5 +374,72 @@ export const ENGINE_IMAGES_HEADER = [
     formatterOpts: { addSuffix: true },
     formatter: 'LiveDate',
     sort: 'status.buildDate',
+  },
+];
+
+export const ORPHANS_HEADER = [
+  STATE,
+  {
+    ...NAME_COL,
+    formatter: 'OrphanName',
+  },
+  {
+    name: 'node',
+    labelKey: 'longhorn.orphans.table.header.node',
+    value: '$.spec.nodeID',
+    sort: ['$.spec.nodeID'],
+    search: '$.spec.nodeID',
+    formatter: 'NodeName',
+  },
+  {
+    name: 'type',
+    labelKey: 'longhorn.orphans.table.header.type',
+    value: '$.spec.orphanType',
+    sort: ['$.spec.orphanType'],
+    search: '$.spec.orphanType',
+    width: 120,
+  },
+  {
+    name: 'dataName',
+    labelKey: 'longhorn.orphans.table.header.dataName',
+    value: '$.spec.parameters.DataName',
+    sort: ['$.spec.parameters.DataName'],
+    search: '$.spec.parameters.DataName',
+  },
+  {
+    name: 'diskName',
+    labelKey: 'longhorn.orphans.table.header.diskName',
+    value: '$.spec.parameters.DiskName',
+    sort: ['$.spec.parameters.DiskName'],
+    search: '$.spec.parameters.DiskName',
+  },
+  {
+    name: 'diskPath',
+    labelKey: 'longhorn.orphans.table.header.diskPath',
+    value: '$.spec.parameters.DiskPath',
+    sort: ['$.spec.parameters.DiskPath'],
+    search: '$.spec.parameters.DiskPath',
+  },
+  {
+    name: 'instanceName',
+    labelKey: 'longhorn.orphans.table.header.instanceName',
+    value: '$.spec.parameters.InstanceName',
+    sort: ['$.spec.parameters.InstanceName'],
+    search: '$.spec.parameters.InstanceName',
+  },
+  {
+    name: 'instanceManager',
+    labelKey: 'longhorn.orphans.table.header.instanceManager',
+    value: '$.spec.parameters.InstanceManager',
+    sort: ['$.spec.parameters.InstanceManager'],
+    search: '$.spec.parameters.InstanceManager',
+  },
+  {
+    name: 'dataEngine',
+    labelKey: 'longhorn.orphans.table.header.dataEngine',
+    value: '$.spec.dataEngine',
+    sort: ['$.spec.dataEngine'],
+    search: '$.spec.dataEngine',
+    align: 'center',
   },
 ];

@@ -8,6 +8,7 @@ import {
   SYSTEM_BACKUPS_HEADER,
   SYSTEM_RESTORE_HEADER,
   VOLUMES_HEADER,
+  ORPHANS_HEADER,
 } from './table-headers';
 
 export function init($plugin: any, store: any) {
@@ -113,6 +114,14 @@ export function init($plugin: any, store: any) {
   });
   mapType(LONGHORN_RESOURCES.INSTANCE_MANAGERS, LONGHORN_PAGES.INSTANCE_MANAGERS);
 
+  // Orphans
+  configureType(LONGHORN_RESOURCES.ORPHANS, {
+    isCreatable: false,
+    isEditable: false,
+  });
+  mapType(LONGHORN_RESOURCES.ORPHANS, LONGHORN_PAGES.ORPHANS);
+  headers(LONGHORN_RESOURCES.ORPHANS, ORPHANS_HEADER);
+
   // ----- Sidebar configuration ----- //
   basicType([
     LONGHORN_PAGES.DASHBOARD,
@@ -130,7 +139,10 @@ export function init($plugin: any, store: any) {
     ],
     LONGHORN_GROUP.BACKUP_AND_RESTORE
   );
-  basicType([LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_RESOURCES.INSTANCE_MANAGERS], LONGHORN_GROUP.ADVANCED);
+  basicType(
+    [LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_RESOURCES.INSTANCE_MANAGERS, LONGHORN_RESOURCES.ORPHANS],
+    LONGHORN_GROUP.ADVANCED
+  );
   weightType(LONGHORN_PAGES.DASHBOARD, 999, true);
   weightType(LONGHORN_RESOURCES.NODES, 800, true);
   weightType(LONGHORN_RESOURCES.VOLUMES, 700, true);

@@ -166,3 +166,15 @@ longhorn:
     fetchError: 'Failed to load settings from Longhorn API. Details: %{error}'
     apply: Apply Changes
     noResults: No settings found matching your search
+  orphans:
+    table:
+      header:
+        node: Node
+        type: Type
+        orphanType: Orphan Type
+        dataName: Data Name
+        diskName: Disk Name
+        diskPath: Disk Path
+        instanceName: Instance Name
+        instanceManager: Instance Manager
+        dataEngine: Data Engine
