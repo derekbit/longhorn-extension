@@ -290,7 +290,9 @@ export const BACKUP_TARGETS_HEADER = [
     value: '$.status.lastSyncedAt',
     sort: ['$.status.lastSyncedAt'],
     search: '$.status.lastSyncedAt',
+    formatter: 'LiveDate',
   },
+  AGE,
 ];
 
 export const SYSTEM_BACKUPS_HEADER = [
@@ -377,6 +379,50 @@ export const ENGINE_IMAGES_HEADER = [
   },
 ];
 
+export const INSTANCE_MANAGERS_HEADER = [
+  STATE,
+  NAME_COL,
+  {
+    name: 'status',
+    labelKey: 'longhorn.instanceManager.table.header.status',
+    value: '$.status.currentState',
+    sort: ['$.status.currentState'],
+    search: '$.status.currentState',
+  },
+  {
+    name: 'type',
+    labelKey: 'longhorn.instanceManager.table.header.type',
+    value: '$.spec.type',
+    sort: ['$.spec.type'],
+    search: '$.spec.type',
+    align: 'center',
+  },
+  {
+    name: 'data engine',
+    labelKey: 'longhorn.instanceManager.table.header.dataEngine',
+    value: '$.spec.dataEngine',
+    sort: ['$.spec.dataEngine'],
+    search: '$.spec.dataEngine',
+    align: 'center',
+  },
+  {
+    name: 'node',
+    labelKey: 'longhorn.instanceManager.table.header.node',
+    value: '$.spec.nodeID',
+    sort: ['$.spec.nodeID'],
+    search: '$.spec.nodeID',
+    formatter: 'NodeName',
+  },
+  {
+    name: 'image',
+    labelKey: 'longhorn.instanceManager.table.header.image',
+    value: '$.spec.image',
+    sort: ['$.spec.image'],
+    search: '$.spec.image',
+  },
+  AGE,
+];
+
 export const ORPHANS_HEADER = [
   STATE,
   {
@@ -442,4 +488,5 @@ export const ORPHANS_HEADER = [
     search: '$.spec.dataEngine',
     align: 'center',
   },
+  AGE,
 ];

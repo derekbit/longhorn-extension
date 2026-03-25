@@ -166,6 +166,14 @@ longhorn:
     fetchError: 'Failed to load settings from Longhorn API. Details: %{error}'
     apply: Apply Changes
     noResults: No settings found matching your search
+  instanceManager:
+    table:
+      header:
+        status: Status
+        type: Type
+        dataEngine: Data Engine
+        node: Node
+        image: Image
   orphans:
     table:
       header:

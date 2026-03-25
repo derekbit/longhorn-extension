@@ -8,6 +8,7 @@ import {
   SYSTEM_BACKUPS_HEADER,
   SYSTEM_RESTORE_HEADER,
   VOLUMES_HEADER,
+  INSTANCE_MANAGERS_HEADER,
   ORPHANS_HEADER,
 } from './table-headers';
 
@@ -113,6 +114,7 @@ export function init($plugin: any, store: any) {
     canYaml: false,
   });
   mapType(LONGHORN_RESOURCES.INSTANCE_MANAGERS, LONGHORN_PAGES.INSTANCE_MANAGERS);
+  headers(LONGHORN_RESOURCES.INSTANCE_MANAGERS, INSTANCE_MANAGERS_HEADER);
 
   // Orphans
   configureType(LONGHORN_RESOURCES.ORPHANS, {
