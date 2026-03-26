@@ -149,6 +149,18 @@ longhorn:
       header:
         version: Version
         state: State
+  backingImage:
+    table:
+      header:
+        name: Name
+        uuid: UUID
+        actualSize: Actual Size
+        virtualSize: Virtual Size
+        sourceType: Source Type
+        minNumberOfCopies: Min Copies
+        dataEngine: Data Engine
+        nodeTags: Node Tags
+        diskTags: Disk Tags
   engineImage:
     title: Engine Image
     table:

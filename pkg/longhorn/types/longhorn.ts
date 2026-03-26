@@ -16,6 +16,7 @@ export const LONGHORN_PAGES = {
   SETTINGS: 'Settings',
   INSTANCE_MANAGERS: 'Instance Managers',
   ORPHANS: 'Orphans Resources',
+  BACKING_IMAGES: 'Backing Images',
 };
 
 export const LONGHORN_GROUP = {

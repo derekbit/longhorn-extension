@@ -83,6 +83,8 @@ export default class NodeModel extends LonghornModel {
 
   get disks() {
     const specDisks = this.spec?.disks || {};
+
+    console.log('🚀🚀🚀🚀🚀 ~ NodeModel ~ disks ~ specDisks:', specDisks);
     const statusMap = this.status?.diskStatus || {};
 
     return Object.entries(specDisks).map(([id, specDisk]) => {
@@ -116,6 +118,7 @@ export default class NodeModel extends LonghornModel {
         diskAllocated,
         diskUsed,
         diskSize,
+        diskTags: specDisk.tags || [],
       };
     });
   }

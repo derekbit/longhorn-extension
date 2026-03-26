@@ -70,6 +70,73 @@ export const NODES_HEADER = [
   AGE,
 ];
 
+export const DISKS_HEADERS = [
+  {
+    name: 'schedulable',
+    labelKey: 'longhorn.node.table.header.schedulable',
+    value: 'allowScheduling',
+    sort: 'allowScheduling',
+    search: 'allowScheduling',
+    formatter: 'CapitalizedValue',
+    width: 100,
+    align: 'center',
+  },
+  {
+    name: 'id',
+    labelKey: 'longhorn.node.table.header.diskId',
+    value: 'id',
+    sort: ['id'],
+    width: 200,
+  },
+  {
+    name: 'diskType',
+    labelKey: 'longhorn.node.table.header.diskType',
+    value: 'diskType',
+    width: 100,
+  },
+  {
+    name: 'path',
+    labelKey: 'longhorn.node.table.header.path',
+    value: 'path',
+    sort: ['path'],
+    width: 100,
+  },
+  {
+    name: 'replicas',
+    labelKey: 'longhorn.node.table.header.replicas',
+    value: 'scheduledReplicaCounts',
+    formatter: 'Link',
+    width: 80,
+    align: 'center',
+  },
+  {
+    name: 'allocated',
+    labelKey: 'longhorn.node.table.header.allocated',
+    value: 'diskAllocated',
+    formatter: 'ConsumptionGauge',
+  },
+  {
+    name: 'used',
+    labelKey: 'longhorn.node.table.header.used',
+    value: 'diskUsed',
+    formatter: 'ConsumptionGauge',
+  },
+  {
+    name: 'size',
+    labelKey: 'longhorn.node.table.header.size',
+    value: 'diskSize',
+    formatter: 'DiskSize',
+    width: 200,
+    align: 'center',
+  },
+  {
+    name: 'tags',
+    labelKey: 'longhorn.node.table.header.tags',
+    value: 'diskTags',
+    formatter: 'Tag',
+  },
+];
+
 export const VOLUMES_HEADER = [
   STATE,
   {
@@ -139,67 +206,6 @@ export const VOLUMES_HEADER = [
     width: 100,
   },
   AGE,
-];
-
-export const DISKS_HEADERS = [
-  {
-    name: 'schedulable',
-    labelKey: 'longhorn.node.table.header.schedulable',
-    value: 'allowScheduling',
-    sort: 'allowScheduling',
-    search: 'allowScheduling',
-    formatter: 'CapitalizedValue',
-    width: 100,
-    align: 'center',
-  },
-  {
-    name: 'id',
-    labelKey: 'longhorn.node.table.header.diskId',
-    value: 'id',
-    sort: ['id'],
-    width: 200,
-  },
-  {
-    name: 'diskType',
-    labelKey: 'longhorn.node.table.header.diskType',
-    value: 'diskType',
-    width: 100,
-  },
-  {
-    name: 'path',
-    labelKey: 'longhorn.node.table.header.path',
-    value: 'path',
-    sort: ['path'],
-    width: 100,
-  },
-  {
-    name: 'replicas',
-    labelKey: 'longhorn.node.table.header.replicas',
-    value: 'scheduledReplicaCounts',
-    formatter: 'Link',
-    width: 80,
-    align: 'center',
-  },
-  {
-    name: 'allocated',
-    labelKey: 'longhorn.node.table.header.allocated',
-    value: 'diskAllocated',
-    formatter: 'ConsumptionGauge',
-  },
-  {
-    name: 'used',
-    labelKey: 'longhorn.node.table.header.used',
-    value: 'diskUsed',
-    formatter: 'ConsumptionGauge',
-  },
-  {
-    name: 'size',
-    labelKey: 'longhorn.node.table.header.size',
-    value: 'diskSize',
-    formatter: 'DiskSize',
-    width: 200,
-    align: 'center',
-  },
 ];
 
 export const RECURRING_JOBS_HEADER = [
@@ -344,6 +350,79 @@ export const SYSTEM_RESTORE_HEADER = [
   AGE,
 ];
 
+export const BACKING_IMAGES_HEADER = [
+  STATE,
+  {
+    name: 'name',
+    labelKey: 'longhorn.backingImage.table.header.name',
+    sort: ['nameSort'],
+    formatter: 'BackingImageName',
+    canBeVariable: true,
+    valueProp: 'nameDisplay',
+  },
+  {
+    name: 'uuid',
+    labelKey: 'longhorn.backingImage.table.header.uuid',
+    value: '$.status.uuid',
+    sort: ['$.status.uuid'],
+    search: '$.status.uuid',
+    tooltip: '',
+  },
+  {
+    name: 'actualSize',
+    labelKey: 'longhorn.backingImage.table.header.actualSize',
+    value: '$.status.size',
+    sort: ['$.status.size'],
+    search: '$.status.size',
+    tooltip: "The physical storage space currently consumed by the image file on the host's file system",
+    formatter: 'Si',
+  },
+  {
+    name: 'virtualsize',
+    labelKey: 'longhorn.backingImage.table.header.virtualSize',
+    value: '$.status.virtualSize',
+    sort: ['$.status.virtualSize'],
+    search: '$.status.virtualSize',
+    tooltip: 'The total logical capacity of the disk that the image represents',
+    formatter: 'Si',
+  },
+  {
+    name: 'sourcetype',
+    labelKey: 'longhorn.backingImage.table.header.sourceType',
+    value: '$.spec.sourceType',
+    sort: ['$.spec.sourceType'],
+    search: '$.spec.sourceType',
+  },
+  {
+    name: 'minNumberOfCopies',
+    labelKey: 'longhorn.backingImage.table.header.minNumberOfCopies',
+    value: '$.spec.minNumberOfCopies',
+    sort: ['$.spec.minNumberOfCopies'],
+    search: '$.spec.minNumberOfCopies',
+    align: 'center',
+  },
+  {
+    name: 'dataEngine',
+    labelKey: 'longhorn.backingImage.table.header.dataEngine',
+    value: '$.spec.dataEngine',
+    sort: ['$.spec.dataEngine'],
+    search: '$.spec.dataEngine',
+    align: 'center',
+  },
+  {
+    name: 'nodeTags',
+    labelKey: 'longhorn.backingImage.table.header.nodeTags',
+    value: '$.spec.nodeSelector',
+    formatter: 'Tag',
+  },
+  {
+    name: 'diskTags',
+    labelKey: 'longhorn.backingImage.table.header.diskTags',
+    value: '$.spec.diskSelector',
+    formatter: 'Tag',
+  },
+];
+
 export const ENGINE_IMAGES_HEADER = [
   STATE,
   NAME_COL,
@@ -444,7 +523,6 @@ export const ORPHANS_HEADER = [
     value: '$.spec.orphanType',
     sort: ['$.spec.orphanType'],
     search: '$.spec.orphanType',
-    width: 120,
   },
   {
     name: 'dataName',
@@ -473,6 +551,7 @@ export const ORPHANS_HEADER = [
     value: '$.spec.parameters.InstanceName',
     sort: ['$.spec.parameters.InstanceName'],
     search: '$.spec.parameters.InstanceName',
+    canBeVariable: true,
   },
   {
     name: 'instanceManager',

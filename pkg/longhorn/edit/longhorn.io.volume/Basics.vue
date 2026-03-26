@@ -565,9 +565,8 @@ export default {
           v-model:value="value.spec.nodeSelector"
           :label="t('longhorn.volume.form.nodeTag')"
           :options="nodeTagOptions"
-          multiple
+          :multiple="true"
           :mode="mode"
-          :searchable="true"
         />
       </div>
       <div class="col span-6">
@@ -575,9 +574,8 @@ export default {
           v-model:value="value.spec.diskSelector"
           :label="t('longhorn.volume.form.diskTag')"
           :options="diskTagOptions"
-          multiple
+          :multiple="true"
           :mode="mode"
-          :searchable="true"
         />
       </div>
     </div>

@@ -28,6 +28,7 @@ export const LONGHORN_SETTINGS = {
   DEFAULT_UBLK_QUEUE_DEPTH: 'longhorn-system/default-ublk-queue-depth',
   V1_DATA_ENGINE: 'longhorn-system/v1-data-engine',
   V2_DATA_ENGINE: 'longhorn-system/v2-data-engine',
+  DEFAULT_MIN_NUMBER_OF_BACKING_IMAGE_COPIES: 'longhorn-system/default-min-number-of-backing-image-copies',
 };
 
 export const LONGHORN_LABELS = {
