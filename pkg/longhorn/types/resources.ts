@@ -16,6 +16,7 @@ export const LONGHORN_RESOURCES = {
   VOLUME_ATTACHMENTS: 'longhorn.io.volumeattachment',
   REPLICAS: 'longhorn.io.replica',
   ORPHANS: 'longhorn.io.orphan',
+  BACKING_IMAGE_BACKUPS: 'longhorn.io.backupbackingimage',
 };
 
 export const LONGHORN_SETTINGS = {

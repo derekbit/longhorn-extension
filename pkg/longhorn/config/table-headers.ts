@@ -3,7 +3,7 @@ import { STATE, NAME as NAME_COL, AGE, IMAGE_NAME } from '@shell/config/table-he
 export const NODES_HEADER = [
   {
     name: 'status',
-    label: 'Status',
+    labelKey: 'tableHeaders.status',
     value: 'nodeStatus',
     sort: ['nodeStatus.stateDisplay'],
     search: ['nodeStatus.stateDisplay'],
@@ -551,7 +551,6 @@ export const ORPHANS_HEADER = [
     value: '$.spec.parameters.InstanceName',
     sort: ['$.spec.parameters.InstanceName'],
     search: '$.spec.parameters.InstanceName',
-    canBeVariable: true,
   },
   {
     name: 'instanceManager',
@@ -567,6 +566,35 @@ export const ORPHANS_HEADER = [
     sort: ['$.spec.dataEngine'],
     search: '$.spec.dataEngine',
     align: 'center',
+  },
+  AGE,
+];
+
+export const BACKING_IMAGE_BACKUPS_HEADER = [
+  STATE,
+  NAME_COL,
+  {
+    name: 'backupTarget',
+    labelKey: 'longhorn.backingImageBackup.table.header.backupTarget',
+    value: '$.spec.backupTargetName',
+    sort: ['$.spec.backupTargetName'],
+    search: '$.spec.backupTargetName',
+  },
+  {
+    name: 'size',
+    labelKey: 'longhorn.backingImageBackup.table.header.size',
+    value: '$.status.size',
+    sort: ['$.status.size'],
+    search: '$.status.size',
+    formatter: 'Si',
+  },
+  {
+    name: 'url',
+    labelKey: 'longhorn.backingImageBackup.table.header.url',
+    value: '$.status.url',
+    sort: ['$.status.url'],
+    search: '$.status.url',
+    dashIfEmpty: true,
   },
   AGE,
 ];

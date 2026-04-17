@@ -138,6 +138,12 @@ longhorn:
     form:
       pollInterval:
         tooltip: Set 0 to disable the polling
+  backingImageBackup:
+    table:
+      header:
+        backupTarget: Backup Target
+        size: Size
+        url: URL
   systemBackup:
     table:
       header:
