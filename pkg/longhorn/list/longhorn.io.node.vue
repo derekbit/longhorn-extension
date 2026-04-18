@@ -21,6 +21,7 @@ const props = defineProps({
 });
 
 const store = useStore();
+const MISSING_STORE_NAMESPACE_ERROR = 'Vuex store namespace not found.';
 
 const isLoading = ref(true);
 const loadError = ref(null);
@@ -36,6 +37,8 @@ const getAll = (type) => {
   return typeof getter === 'function' ? getter(type) || [] : [];
 };
 
+const dispatchInStore = (action, payload) => store.dispatch(`${inStore.value}/${action}`, payload);
+
 const rows = computed(() => getAll(props.resource));
 
 async function fetchData() {
@@ -43,7 +46,7 @@ async function fetchData() {
   loadError.value = null;
 
   if (!inStore.value) {
-    loadError.value = new Error('Vuex store namespace not found.');
+    loadError.value = new Error(MISSING_STORE_NAMESPACE_ERROR);
     isLoading.value = false;
 
     return;
@@ -51,9 +54,9 @@ async function fetchData() {
 
   try {
     const hash = {
-      nodes: store.dispatch(`${inStore.value}/findAll`, { type: props.resource }),
-      volumes: store.dispatch(`${inStore.value}/findAll`, { type: LONGHORN_RESOURCES.VOLUMES }),
-      defaultStorageOverProvisioningPercentage: store.dispatch(`${inStore.value}/find`, {
+      nodes: dispatchInStore('findAll', { type: props.resource }),
+      volumes: dispatchInStore('findAll', { type: LONGHORN_RESOURCES.VOLUMES }),
+      defaultStorageOverProvisioningPercentage: dispatchInStore('find', {
         type: LONGHORN_RESOURCES.SETTINGS,
         id: LONGHORN_SETTINGS.STORAGE_OVER_PROVISIONING_PERCENTAGE,
       }),

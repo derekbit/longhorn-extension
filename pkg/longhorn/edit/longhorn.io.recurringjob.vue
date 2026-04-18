@@ -193,9 +193,9 @@ export default {
 
       if (!schema?.basics) return { basics: false };
       const hasError = (fields) =>
-        fields.some((f) => {
-          const val = get(this.value, f.path);
-          const rules = this.fvGetPathRules(f.path) || [];
+        fields.some((field) => {
+          const val = get(this.value, field.path);
+          const rules = this.fvGetPathRules(field.path) || [];
 
           return rules.some((rule) => typeof rule(val) === 'string');
         });
@@ -300,7 +300,7 @@ export default {
         const all = neu?.basics || [];
 
         this.fvFormRuleSets = all;
-        this.fvReportedValidationPaths = all.map((f) => f.path);
+        this.fvReportedValidationPaths = all.map((field) => field.path);
       },
       immediate: true,
       deep: true,

@@ -2,7 +2,29 @@ import LonghornModel from '../longhorn';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
 
+const STATUS_TRUE = 'True';
+const STATUS_FALSE = 'False';
+
+const BADGE = {
+  ERROR: 'bg-error',
+  WARNING: 'bg-warning',
+  SUCCESS: 'bg-success',
+  DISABLED: 'badge-disabled',
+};
+
 export default class NodeModel extends LonghornModel {
+  createState(stateDisplay, stateBackground, message = '') {
+    return {
+      stateDisplay,
+      stateBackground,
+      message,
+    };
+  }
+
+  getConditionStatusLower(condition) {
+    return condition?.status?.toLowerCase();
+  }
+
   get _availableActions() {
     const out = super._availableActions || [];
 
@@ -18,77 +40,104 @@ export default class NodeModel extends LonghornModel {
   }
 
   get isDown() {
-    const readyCondition = (this.status?.conditions || []).find((c) => c.type === 'Ready');
+    return this.getConditionStatusLower(this.readyCondition) === STATUS_FALSE.toLowerCase();
+  }
 
-    return readyCondition?.status?.toLowerCase() === 'false';
+  get isReady() {
+    return this.readyCondition?.status === STATUS_TRUE;
+  }
+
+  get isSchedulable() {
+    return this.isReady && this.spec?.allowScheduling === true && this.schedulableCondition?.status === STATUS_TRUE;
+  }
+
+  get isConditionSchedulable() {
+    return this.schedulableCondition?.status === STATUS_TRUE;
+  }
+
+  get conditionsByType() {
+    const out = {};
+    const conditions = this.status?.conditions || [];
+
+    conditions.forEach((c) => {
+      if (c?.type) {
+        out[c.type] = c;
+      }
+    });
+
+    return out;
+  }
+
+  get readyCondition() {
+    return this.conditionsByType.Ready || {};
+  }
+
+  get schedulableCondition() {
+    return this.conditionsByType.Schedulable || {};
   }
 
   get nodeStatus() {
-    const conditions = this.status?.conditions || [];
-    const readyCond = conditions.find((c) => c.type === 'Ready') || {};
-    const schedulableCond = conditions.find((c) => c.type === 'Schedulable') || {};
+    const readyCond = this.readyCondition;
+    const schedulableCond = this.schedulableCondition;
 
-    const isReady = readyCond.status === 'True';
-    const isSchedulableCondTrue = schedulableCond.status === 'True';
+    const isReady = this.isReady;
+    const isSchedulableCondTrue = schedulableCond.status === STATUS_TRUE;
 
-    const checks = [
-      {
-        key: 'down',
-        name: 'Down',
-        badge: 'bg-error',
-        determine: () => !isReady && readyCond.reason === 'KubernetesNodeNotReady',
-      },
-      {
-        key: 'disabled',
-        name: 'Disabled',
-        badge: 'badge-disabled',
-        determine: () => isReady && this.spec?.allowScheduling === false,
-      },
-      {
-        key: 'autoEvicting',
-        name: 'AutoEvicting',
-        badge: 'bg-warning',
-        determine: () => isReady && this.status?.autoEvicting === true,
-      },
-      {
-        key: 'unschedulable',
-        name: 'Unschedulable',
-        badge: 'bg-warning',
-        determine: () => isReady && !isSchedulableCondTrue,
-      },
-      {
-        key: 'schedulable',
-        name: 'Schedulable',
-        badge: 'bg-success',
-        determine: () => isReady && isSchedulableCondTrue && this.spec?.allowScheduling === true,
-      },
-    ];
-
-    for (const check of checks) {
-      if (check.determine()) {
-        return {
-          stateDisplay: check.name,
-          stateBackground: check.badge,
-          message: schedulableCond.message || readyCond.message || '',
-        };
-      }
+    // Keep the same precedence as Longhorn dashboard node readiness logic.
+    if (!isReady) {
+      return this.createState('Down', BADGE.ERROR, readyCond.message || '');
     }
 
-    return {
-      stateDisplay: 'Unknown',
-      stateBackground: 'bg-error',
-      message: readyCond.message || '',
-    };
+    if (this.spec?.allowScheduling === false) {
+      return this.createState('Disabled', BADGE.DISABLED, schedulableCond.message || readyCond.message || '');
+    }
+
+    if (!isSchedulableCondTrue) {
+      return this.createState('Unschedulable', BADGE.WARNING, schedulableCond.message || readyCond.message || '');
+    }
+
+    if (isReady && isSchedulableCondTrue) {
+      return this.createState('Schedulable', BADGE.SUCCESS, schedulableCond.message || readyCond.message || '');
+    }
+
+    return this.createState('Down', BADGE.ERROR, readyCond.message || '');
+  }
+
+  get readiness() {
+    return this.isReady ? 'Ready' : 'Not Ready';
   }
 
   get disks() {
     const specDisks = this.spec?.disks || {};
 
-    console.log('🚀🚀🚀🚀🚀 ~ NodeModel ~ disks ~ specDisks:', specDisks);
     const statusMap = this.status?.diskStatus || {};
+    const nodeReadyStatus = this.getConditionStatusLower(this.readyCondition);
+    const nodeSchedulableStatus = this.getConditionStatusLower(this.schedulableCondition);
 
     return Object.entries(specDisks).map(([id, specDisk]) => {
       const statusDisk = statusMap[id] || {};
+      const diskConditions = statusDisk.conditions || [];
+      const diskSchedulableCondition = diskConditions.find((c) => c.type === 'Schedulable') || {};
+      const diskSchedulableStatus = this.getConditionStatusLower(diskSchedulableCondition);
+
+      let diskStatus;
+
+      if (nodeReadyStatus === STATUS_FALSE.toLowerCase()) {
+        diskStatus = this.createState('Error', BADGE.ERROR, this.readyCondition?.message || '');
+      } else if (this.spec?.allowScheduling === false || specDisk.allowScheduling === false) {
+        diskStatus = this.createState('Disabled', BADGE.DISABLED);
+      } else if (
+        nodeSchedulableStatus === STATUS_FALSE.toLowerCase() ||
+        diskSchedulableStatus === STATUS_FALSE.toLowerCase()
+      ) {
+        diskStatus = this.createState(
+          'Unschedulable',
+          BADGE.WARNING,
+          diskSchedulableCondition.message || this.schedulableCondition?.message || ''
+        );
+      } else {
+        diskStatus = this.createState('Schedulable', BADGE.SUCCESS);
+      }
 
       const scheduledReplicaCounts = {
         text: Object.keys(statusDisk.scheduledReplica || {}).length,
@@ -110,6 +159,26 @@ export default class NodeModel extends LonghornModel {
         capacity: (statusDisk.storageMaximum || 0) - (specDisk.storageReserved || 0),
       };
 
+      const healthData = statusDisk.healthData?.[id] || {};
+      const rawHealthStatus = (healthData.healthStatus || 'UNKNOWN').toUpperCase();
+      const healthMessage = Array.isArray(healthData.attributes)
+        ? healthData.attributes.map((attr) => `${attr.name}: ${attr.rawValue}`).join('<br/>')
+        : '';
+
+      let diskHealthStatus = {
+        stateDisplay: 'Unknown',
+        stateBackground: BADGE.DISABLED,
+        message: healthMessage,
+      };
+
+      if (rawHealthStatus === 'PASSED') {
+        diskHealthStatus = this.createState('Passed', BADGE.SUCCESS, healthMessage);
+      } else if (rawHealthStatus === 'WARNING') {
+        diskHealthStatus = this.createState('Warning', BADGE.WARNING, healthMessage);
+      } else if (rawHealthStatus === 'FAILED') {
+        diskHealthStatus = this.createState('Failed', BADGE.ERROR, healthMessage);
+      }
+
       return {
         id,
         ...specDisk,
@@ -118,6 +187,8 @@ export default class NodeModel extends LonghornModel {
         diskAllocated,
         diskUsed,
         diskSize,
+        diskStatus,
+        diskHealthStatus,
         diskTags: specDisk.tags || [],
       };
     });

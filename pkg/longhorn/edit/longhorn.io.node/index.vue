@@ -99,9 +99,9 @@ export default {
 
     tabErrors() {
       const hasError = (fields) =>
-        fields.some((f) => {
-          const val = get(this.value, f.path);
-          const rules = this.fvGetPathRules(f.path) || [];
+        fields.some((field) => {
+          const val = get(this.value, field.path);
+          const rules = this.fvGetPathRules(field.path) || [];
 
           return rules.some((rule) => typeof rule(val) === 'string');
         });
@@ -117,16 +117,17 @@ export default {
     },
 
     basicValidationRules() {
-      return this.validationSchema.basics.reduce(
-        (acc, f) => ({ ...acc, [f.key]: this.fvGetAndReportPathRules(f.path) }),
-        {}
-      );
+      return this.validationSchema.basics.reduce((acc, field) => {
+        acc[field.key] = this.fvGetAndReportPathRules(field.path);
+
+        return acc;
+      }, {});
     },
 
     diskValidationRules() {
-      return this.validationSchema.disks.reduce((acc, f) => {
-        acc[f.key] = acc[f.key] || {};
-        acc[f.key][f.field] = this.fvGetAndReportPathRules(f.path);
+      return this.validationSchema.disks.reduce((acc, field) => {
+        acc[field.key] = acc[field.key] || {};
+        acc[field.key][field.field] = this.fvGetAndReportPathRules(field.path);
 
         return acc;
       }, {});
@@ -145,6 +146,32 @@ export default {
   },
 
   methods: {
+    buildRuleSetConfig(fields) {
+      return fields.map((field) => ({
+        path: field.path,
+        rules: field.rules,
+        translationKey: field.translationKey,
+      }));
+    },
+
+    normalizeDisks(disks) {
+      let hasChanged = false;
+      const normalizedDisks = { ...disks };
+
+      Object.entries(normalizedDisks).forEach(([id, disk]) => {
+        if (!Object.prototype.hasOwnProperty.call(disk, 'name') || disk.isNew === undefined) {
+          normalizedDisks[id] = {
+            ...disk,
+            name: disk.name || id,
+            isNew: disk.isNew ?? false,
+          };
+          hasChanged = true;
+        }
+      });
+
+      return { hasChanged, normalizedDisks };
+    },
+
     mapConditions(conditions = []) {
       return (Array.isArray(conditions) ? conditions : []).map((c) => {
         const isError = c.error || c.status === 'False';
@@ -217,13 +244,9 @@ export default {
       handler(neu) {
         const all = [...neu.basics, ...neu.disks];
 
-        this.fvFormRuleSets = all.map((f) => ({
-          path: f.path,
-          rules: f.rules,
-          translationKey: f.translationKey,
-        }));
+        this.fvFormRuleSets = this.buildRuleSetConfig(all);
 
-        this.fvReportedValidationPaths = all.map((f) => f.path);
+        this.fvReportedValidationPaths = all.map((field) => field.path);
       },
       immediate: true,
       deep: true,
@@ -232,20 +255,11 @@ export default {
     'value.spec.disks': {
       handler(neu) {
         if (!neu) return;
-        let hasChanged = false;
-        const disks = { ...neu };
+        const { hasChanged, normalizedDisks } = this.normalizeDisks(neu);
 
-        for (const id in disks) {
-          if (!Object.prototype.hasOwnProperty.call(disks[id], 'name') || disks[id].isNew === undefined) {
-            disks[id] = {
-              ...disks[id],
-              name: disks[id].name || id,
-              isNew: disks[id].isNew ?? false,
-            };
-            hasChanged = true;
-          }
+        if (hasChanged) {
+          this.value.spec = { ...this.value.spec, disks: normalizedDisks };
         }
-        if (hasChanged) this.value.spec = { ...this.value.spec, disks };
       },
       immediate: true,
       deep: true,

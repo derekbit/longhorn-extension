@@ -8,12 +8,26 @@ export default {
       type: Object,
       required: true,
     },
+    value: {
+      type: [String, Object],
+      default: 'nodeStatus',
+    },
   },
   computed: {
     statusInfo() {
-      if (!this.row?.nodeStatus) return {};
+      if (this.value && typeof this.value === 'object') {
+        return this.value;
+      }
 
-      return this.row.nodeStatus;
+      if (typeof this.value === 'string' && this.row?.[this.value]) {
+        return this.row[this.value];
+      }
+
+      if (this.row?.nodeStatus) {
+        return this.row.nodeStatus;
+      }
+
+      return null;
     },
   },
 };

@@ -38,6 +38,7 @@ longhorn:
         used: Used
         size: Size
         tags: Tags
+        healthStatus: Health Status
         diskId: Disk ID
         diskType: Type
         path: Path
