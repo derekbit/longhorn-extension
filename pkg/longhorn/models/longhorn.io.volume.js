@@ -1,12 +1,26 @@
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 import LonghornModel from './longhorn';
 
+const BADGE = {
+  ERROR: 'bg-error',
+  WARNING: 'bg-warning',
+  SUCCESS: 'bg-success',
+  DISABLED: 'badge-disabled',
+};
+
 const STATE_DISPLAY_MAP = {
   attached: 'Attached',
   detached: 'Detached',
   faulted: 'Faulted',
   healthy: 'Healthy',
   degraded: 'Degraded',
+};
+
+const ROBUSTNESS = {
+  HEALTHY: 'healthy',
+  DEGRADED: 'degraded',
+  FAULTED: 'faulted',
+  UNKNOWN: 'unknown',
 };
 
 export default class VolumeModel extends LonghornModel {
@@ -46,7 +60,7 @@ export default class VolumeModel extends LonghornModel {
   }
 
   get robustness() {
-    return this.status?.robustness?.toLowerCase() || 'unknown';
+    return this.status?.robustness?.toLowerCase() || ROBUSTNESS.UNKNOWN;
   }
 
   get state() {
@@ -54,7 +68,7 @@ export default class VolumeModel extends LonghornModel {
   }
 
   get isFaulted() {
-    return this.robustness === VolumeModel.STATES.FAULTED;
+    return this.robustness === ROBUSTNESS.FAULTED;
   }
 
   get isAttached() {
@@ -71,12 +85,9 @@ export default class VolumeModel extends LonghornModel {
 
   get displayState() {
     const { state, robustness } = this;
-
     const isStable =
-      (state === VolumeModel.STATES.ATTACHED &&
-        [VolumeModel.STATES.HEALTHY, VolumeModel.STATES.DEGRADED].includes(robustness)) ||
-      (state === VolumeModel.STATES.DETACHED && robustness === VolumeModel.STATES.FAULTED);
-
+      (state === VolumeModel.STATES.ATTACHED && [ROBUSTNESS.HEALTHY, ROBUSTNESS.DEGRADED].includes(robustness)) ||
+      (state === VolumeModel.STATES.DETACHED && robustness === ROBUSTNESS.FAULTED);
     const target = isStable ? robustness : state;
 
     return STATE_DISPLAY_MAP[target] || target.charAt(0).toUpperCase() + target.slice(1);
@@ -99,6 +110,40 @@ export default class VolumeModel extends LonghornModel {
     }
 
     return { ready: true };
+  }
+
+  get isDataLocalityNotMet() {
+    if (this.spec?.dataLocality !== 'best-effort' || !this.isAttached) return false;
+    const attachedNodeId = this.status?.currentNodeID || '';
+
+    return (this.status?.replicas || []).every((r) => r.hostID !== attachedNodeId);
+  }
+
+  get volumeStatus() {
+    const { state, robustness } = this;
+
+    if (robustness === ROBUSTNESS.FAULTED) {
+      return { stateDisplay: 'Faulted', stateBackground: BADGE.ERROR, message: '' };
+    }
+    if (this.isRestoring) {
+      return { stateDisplay: 'Restoring', stateBackground: BADGE.WARNING, message: '' };
+    }
+    if (this.isStandby) {
+      return { stateDisplay: 'Standby', stateBackground: BADGE.DISABLED, message: '' };
+    }
+    if (state === VolumeModel.STATES.ATTACHED) {
+      if (robustness === ROBUSTNESS.HEALTHY) {
+        return { stateDisplay: 'Healthy', stateBackground: BADGE.SUCCESS, message: '' };
+      }
+      if (robustness === ROBUSTNESS.DEGRADED) {
+        return { stateDisplay: 'Degraded', stateBackground: BADGE.WARNING, message: '' };
+      }
+    }
+    if (state === VolumeModel.STATES.DETACHED) {
+      return { stateDisplay: 'Detached', stateBackground: BADGE.DISABLED, message: '' };
+    }
+
+    return { stateDisplay: this.displayState, stateBackground: BADGE.DISABLED, message: '' };
   }
 
   get inStore() {

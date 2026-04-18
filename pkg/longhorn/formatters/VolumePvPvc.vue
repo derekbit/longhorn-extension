@@ -27,43 +27,24 @@ const statusText = computed(() => {
 const tooltipContent = computed(() => {
   const { pvName, pvStatus, pvcName, lastPVCRefAt } = props.value;
 
-  if (!pvName) return null;
+  if (!pvName) return '';
 
-  let html = `<div class="text-left">`;
+  const row = (label, val) => (val ? `<div style="margin-bottom:4px">${label}: ${val}</div>` : '');
 
-  html += `<div><b>PV Name:</b> ${pvName}</div>`;
-  html += `<div><b>PV Status:</b> ${pvStatus || '—'}</div>`;
-
-  if (lastPVCRefAt) {
-    html += `<div><b>Last time bound with PVC:</b> ${formatDate(lastPVCRefAt)}</div>`;
-  }
-
-  if (pvcName) {
-    const prefix = lastPVCRefAt ? 'Last Bounded ' : '';
-
-    html += `<div><b>${prefix}PVC Name:</b> ${pvcName}</div>`;
-  }
-
-  html += `</div>`;
-
-  return html;
+  return [
+    row('PV Name', pvName),
+    row('PV Status', pvStatus || '—'),
+    lastPVCRefAt ? row('Last time bound with PVC', formatDate(lastPVCRefAt)) : '',
+    pvcName ? row(`${lastPVCRefAt ? 'Last Bounded ' : ''}PVC Name`, pvcName) : '',
+  ].join('');
 });
 </script>
 
 <template>
-  <span
-    v-if="statusText"
-    v-clean-tooltip="{ content: tooltipContent, html: true, placement: 'top' }"
-    class="status-label"
-  >
+  <span v-if="statusText" v-clean-tooltip="{ content: tooltipContent, html: true }">
     {{ statusText }}
   </span>
   <span v-else class="text-muted">&mdash;</span>
 </template>
 
-<style lang="scss" scoped>
-.status-label {
-  cursor: help;
-  text-decoration: underline dotted var(--muted);
-}
-</style>
+<style lang="scss" scoped></style>

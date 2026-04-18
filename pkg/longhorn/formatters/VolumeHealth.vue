@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { BadgeState } from '@components/BadgeState';
 import { useFetch } from '@shell/components/Resource/Detail/FetchLoader/composables';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 
@@ -9,17 +10,10 @@ const VOL_STATE = {
   DETACHED: 'detached',
 };
 
-const COLOR_MAP = {
-  healthy: 'text-success',
-  degraded: 'text-warning',
-  faulted: 'text-error',
-  unknown: 'text-muted',
-};
-
 const props = defineProps({
   value: {
-    type: String,
-    default: '',
+    type: Object,
+    default: () => ({}),
   },
   row: {
     type: Object,
@@ -29,11 +23,11 @@ const props = defineProps({
 
 const store = useStore();
 
+const volumeStatus = computed(() => props.row.volumeStatus || props.value);
 const state = computed(() => props.row.state);
 const robustness = computed(() => props.row.robustness);
 const isFaulted = computed(() => props.row.isFaulted);
 const readyStatus = computed(() => props.row.readyStatus);
-const displayState = computed(() => props.row.displayState);
 
 const status = computed(() => props.row.status || {});
 const spec = computed(() => props.row.spec || {});
@@ -81,13 +75,6 @@ const engineUpgrade = computed(() => {
   return isSafe ? { latest } : null;
 });
 
-const colorClass = computed(() => {
-  if (!readyStatus.value.ready || isFaulted.value) return 'text-error';
-  if (state.value === VOL_STATE.DETACHED) return 'text-muted';
-
-  return COLOR_MAP[robustness.value] || 'text-info';
-});
-
 const showLoading = computed(
   () => state.value.endsWith('ing') || replicas.value.some((r) => r.mode?.toLowerCase() === 'wo')
 );
@@ -129,11 +116,11 @@ useFetch(async () => {
     <div class="state-content">
       <i
         v-if="!readyStatus.ready"
-        v-clean-tooltip="`<b>Not Ready</b><br/>${readyStatus.msg}`"
+        v-clean-tooltip="`Not Ready<br/>${readyStatus.msg}`"
         class="icon icon-error icon-fw text-error"
       />
 
-      <span :class="['state-text', colorClass]">{{ displayState }}</span>
+      <BadgeState :value="volumeStatus" />
 
       <i
         v-if="haType"

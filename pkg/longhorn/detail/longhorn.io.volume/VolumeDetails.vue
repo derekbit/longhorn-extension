@@ -46,32 +46,68 @@ export default {
           const c = rawConditions.find((item) => item.type === type);
 
           if (!c) return null;
-          const isError = c.error || c.status === 'False';
-          const isSuccess = c.status === 'True' && !isError;
+
+          const statusLower = (c.status || '').toLowerCase();
+          const stateDisplay = c.type.replace(/([A-Z])/g, ' $1').trim();
+          let stateBackground, icon, tooltipContent;
+
+          const commonRows = [
+            this.tooltipRow('Name', c.type),
+            this.tooltipRow('Last Probe Time', this.getFullTimestamp(c.lastProbeTime)),
+            this.tooltipRow('Last Transition Time', this.getFullTimestamp(c.lastTransitionTime)),
+            this.tooltipRow('Message', c.message),
+            this.tooltipRow('Reason', c.reason),
+            this.tooltipRow('Status', c.status),
+          ].join('');
+
+          if (type === 'TooManySnapshots') {
+            const notExceeded = statusLower === 'false' || c.reason === '';
+
+            if (notExceeded) {
+              stateBackground = 'bg-info';
+              icon = 'icon-warning';
+              const snapshotMaxCount = this.value.spec?.snapshotMaxCount;
+              const thresholdMsg = snapshotMaxCount
+                ? `The snapshot number threshold (${snapshotMaxCount}) has not been exceeded`
+                : 'The snapshot number threshold has not been exceeded';
+
+              tooltipContent = [
+                this.tooltipRow('Name', c.type),
+                this.tooltipRow('Last Transition Time', this.getFullTimestamp(c.lastTransitionTime)),
+                this.tooltipRow('Status', thresholdMsg),
+              ].join('');
+            } else {
+              stateBackground = 'bg-error';
+              icon = 'icon-error';
+              tooltipContent = [
+                this.tooltipRow('Name', c.type),
+                this.tooltipRow('Last Probe Time', this.getFullTimestamp(c.lastProbeTime)),
+                this.tooltipRow('Last Transition Time', this.getFullTimestamp(c.lastTransitionTime)),
+                this.tooltipRow('Message', c.message),
+                this.tooltipRow('Reason', c.reason),
+                this.tooltipRow('Suggestion', 'Try to delete unused snapshots to free up space if needed'),
+                this.tooltipRow('Status', c.status),
+              ].join('');
+            }
+          } else if (type === 'Restore') {
+            const isInactive = c.reason === '' && statusLower === 'false';
+
+            stateBackground = isInactive ? 'bg-info' : 'bg-success';
+            icon = 'icon-checkmark';
+            tooltipContent = commonRows;
+          } else if (type === 'Scheduled') {
+            const isScheduled = statusLower === 'true';
+
+            stateBackground = isScheduled ? 'bg-success' : 'bg-error';
+            icon = isScheduled ? 'icon-checkmark' : 'icon-error';
+            tooltipContent = commonRows;
+          }
 
           return {
             key: c.type,
-            value: {
-              stateBackground: isError
-                ? 'bg-error'
-                : c.transitioning
-                  ? 'bg-warning'
-                  : isSuccess
-                    ? 'bg-success'
-                    : 'bg-info',
-              stateDisplay: c.type.replace(/([A-Z])/g, ' $1').trim(),
-            },
-            icon: isError
-              ? 'icon-error'
-              : c.transitioning
-                ? 'icon-warning'
-                : isSuccess
-                  ? 'icon-checkmark'
-                  : 'icon-info',
-            tooltip: {
-              content: `<div><b>${c.reason || c.type}</b></div><div>${c.message || '—'}</div>`,
-              html: true,
-            },
+            value: { stateBackground, stateDisplay },
+            icon,
+            tooltip: { content: tooltipContent, html: true },
           };
         })
         .filter(Boolean);
@@ -136,6 +172,10 @@ export default {
       return map[this.value.robustness] || 'text-info';
     },
 
+    volumeStatus() {
+      return this.value.volumeStatus;
+    },
+
     engine() {
       return this.value.currentEngine;
     },
@@ -190,6 +230,11 @@ export default {
   },
 
   methods: {
+    tooltipRow(label, value) {
+      if (!value) return '';
+
+      return `<div style="margin-bottom:4px">${label}: ${value}</div>`;
+    },
     getFullTimestamp(date) {
       if (!date) return '';
       const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
@@ -315,7 +360,7 @@ export default {
     <h3 class="mb-10">Runtime & Kubernetes</h3>
     <div class="row mb-20">
       <div class="col span-4">
-        <LabelValue name="Health">
+        <LabelValue name="State">
           <template #value>
             <div class="health-display">
               <i
@@ -324,7 +369,7 @@ export default {
                 class="icon icon-api text-error mr-5"
                 style="transform: rotate(45deg)"
               />
-              <span :class="healthColorClass">{{ displayState }}</span>
+              <BadgeState :value="volumeStatus" />
               <i
                 v-if="
                   value.spec.dataLocality === 'best-effort' &&

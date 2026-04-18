@@ -238,6 +238,10 @@ export default {
     async loadOptions() {
       if (!this.inStore) return;
 
+      const findAll = (type) => this.$store.dispatch(`${this.inStore}/findAll`, { type });
+      const findSetting = (id) =>
+        this.$store.dispatch(`${this.inStore}/find`, { type: LONGHORN_RESOURCES.SETTINGS, id });
+
       try {
         const [
           volumes,
@@ -251,34 +255,16 @@ export default {
           v1EngSetting,
           v2EngSetting,
         ] = await Promise.all([
-          this.$store.dispatch(`${this.inStore}/findAll`, { type: LONGHORN_RESOURCES.VOLUMES }),
-          this.$store.dispatch(`${this.inStore}/findAll`, { type: LONGHORN_RESOURCES.BACKING_IMAGES }),
-          this.$store.dispatch(`${this.inStore}/findAll`, { type: LONGHORN_RESOURCES.BACKUP_TARGETS }),
-          this.$store.dispatch(`${this.inStore}/findAll`, { type: LONGHORN_RESOURCES.NODES }),
-          this.$store.dispatch(`${this.inStore}/find`, {
-            type: LONGHORN_RESOURCES.SETTINGS,
-            id: LONGHORN_SETTINGS.DEFAULT_REPLICA_COUNT,
-          }),
-          this.$store.dispatch(`${this.inStore}/find`, {
-            type: LONGHORN_RESOURCES.SETTINGS,
-            id: LONGHORN_SETTINGS.DEFAULT_DATA_LOCALITY,
-          }),
-          this.$store.dispatch(`${this.inStore}/find`, {
-            type: LONGHORN_RESOURCES.SETTINGS,
-            id: LONGHORN_SETTINGS.DEFAULT_UBLK_QUEUE_DEPTH,
-          }),
-          this.$store.dispatch(`${this.inStore}/find`, {
-            type: LONGHORN_RESOURCES.SETTINGS,
-            id: LONGHORN_SETTINGS.DEFAULT_UBLK_NUMBER_OF_QUEUE,
-          }),
-          this.$store.dispatch(`${this.inStore}/find`, {
-            type: LONGHORN_RESOURCES.SETTINGS,
-            id: LONGHORN_SETTINGS.V1_DATA_ENGINE,
-          }),
-          this.$store.dispatch(`${this.inStore}/find`, {
-            type: LONGHORN_RESOURCES.SETTINGS,
-            id: LONGHORN_SETTINGS.V2_DATA_ENGINE,
-          }),
+          findAll(LONGHORN_RESOURCES.VOLUMES),
+          findAll(LONGHORN_RESOURCES.BACKING_IMAGES),
+          findAll(LONGHORN_RESOURCES.BACKUP_TARGETS),
+          findAll(LONGHORN_RESOURCES.NODES),
+          findSetting(LONGHORN_SETTINGS.DEFAULT_REPLICA_COUNT),
+          findSetting(LONGHORN_SETTINGS.DEFAULT_DATA_LOCALITY),
+          findSetting(LONGHORN_SETTINGS.DEFAULT_UBLK_QUEUE_DEPTH),
+          findSetting(LONGHORN_SETTINGS.DEFAULT_UBLK_NUMBER_OF_QUEUE),
+          findSetting(LONGHORN_SETTINGS.V1_DATA_ENGINE),
+          findSetting(LONGHORN_SETTINGS.V2_DATA_ENGINE),
         ]);
 
         this.allVolumesRaw = volumes || [];

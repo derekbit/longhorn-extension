@@ -108,16 +108,16 @@ export default {
     },
 
     isRestoring() {
-      return this.value.isRestoring();
+      return this.value.isRestoring;
     },
     upgradingEngine() {
       return this.value.status?.currentImage !== this.value.spec?.image;
     },
     isStandby() {
-      return !!this.value.status?.isStandby;
+      return this.value.isStandby;
     },
     isAttached() {
-      return this.value.status?.state === 'attached';
+      return this.value.isAttached;
     },
     isDetached() {
       return this.value.status?.state === 'detached';
@@ -139,8 +139,7 @@ export default {
   watch: {
     'value.spec.dataEngine'(newEngine) {
       if (newEngine === 'v1') {
-        // Reset V2 specific field when switching back to V1
-        set(this.value.spec, 'spec.replicaRebuildingBandwidthLimit', 0);
+        set(this.value.spec, 'replicaRebuildingBandwidthLimit', 0);
       }
 
       this.$nextTick(() => {

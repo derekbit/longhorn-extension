@@ -91,10 +91,7 @@ export default {
     >
       <template #cell:satisfied="{ row, value }">
         <span v-if="value">Yes</span>
-        <span v-else v-clean-tooltip="getIncompleteMessage(row)" class="text-warning cursor-help">
-          No
-          <i class="icon icon-info ml-5 text-muted" />
-        </span>
+        <span v-else v-clean-tooltip="getIncompleteMessage(row)" class="cursor-help">No</span>
       </template>
 
       <template #cell:nodeID="{ value }">

@@ -137,12 +137,12 @@ export const DISKS_HEADERS = [
 ];
 
 export const VOLUMES_HEADER = [
-  STATE,
   {
     name: 'health',
     labelKey: 'longhorn.volume.table.header.health',
-    value: '$.status.state',
-    sort: ['$.status.state', '$.status.robustness'],
+    value: 'volumeStatus',
+    sort: ['volumeStatus.stateDisplay'],
+    search: ['volumeStatus.stateDisplay'],
     formatter: 'VolumeHealth',
     width: 120,
   },
