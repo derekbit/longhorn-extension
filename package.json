@@ -3,18 +3,18 @@
   "version": "0.1.0",
   "private": false,
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
-    "@rancher/shell": "3.0.9-rc.6",
+    "@rancher/shell": "3.0.12-rc.1",
     "chart.js": "4.4.8",
     "marked": "^17.0.4",
     "vue-i18n": "^11.2.8",
     "vuex": "^4.1.0"
   },
   "resolutions": {
-    "@types/node": "~20.10.0",
+    "@types/node": "~24.0.0",
     "@types/lodash": "4.17.5"
   },
   "scripts": {
