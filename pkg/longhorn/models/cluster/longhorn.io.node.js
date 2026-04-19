@@ -119,22 +119,22 @@ export default class NodeModel extends LonghornModel {
       const diskConditions = statusDisk.conditions || [];
       const diskSchedulableCondition = diskConditions.find((c) => c.type === 'Schedulable') || {};
       const diskSchedulableStatus = this.getConditionStatusLower(diskSchedulableCondition);
+      const nodeSchedulableMessage = this.schedulableCondition?.message || '';
+      const diskMessage =
+        diskSchedulableCondition.message || (nodeSchedulableMessage.startsWith('Disk ') ? nodeSchedulableMessage : '');
 
       let diskStatus;
 
       if (nodeReadyStatus === STATUS_FALSE.toLowerCase()) {
-        diskStatus = this.createState('Error', BADGE.ERROR, this.readyCondition?.message || '');
+        // Node-level errors are shown at node row level, not per disk row.
+        diskStatus = this.createState('Error', BADGE.ERROR, '');
       } else if (this.spec?.allowScheduling === false || specDisk.allowScheduling === false) {
         diskStatus = this.createState('Disabled', BADGE.DISABLED);
       } else if (
         nodeSchedulableStatus === STATUS_FALSE.toLowerCase() ||
         diskSchedulableStatus === STATUS_FALSE.toLowerCase()
       ) {
-        diskStatus = this.createState(
-          'Unschedulable',
-          BADGE.WARNING,
-          diskSchedulableCondition.message || this.schedulableCondition?.message || ''
-        );
+        diskStatus = this.createState('Unschedulable', BADGE.WARNING, diskMessage);
       } else {
         diskStatus = this.createState('Schedulable', BADGE.SUCCESS);
       }
@@ -190,6 +190,14 @@ export default class NodeModel extends LonghornModel {
         diskStatus,
         diskHealthStatus,
         diskTags: specDisk.tags || [],
+        stateObj: {
+          error: diskStatus.stateBackground === BADGE.ERROR,
+          warning: diskStatus.stateBackground === BADGE.WARNING,
+        },
+        stateDescription:
+          diskStatus.stateBackground === BADGE.ERROR || diskStatus.stateBackground === BADGE.WARNING
+            ? diskStatus.message || ''
+            : '',
       };
     });
   }

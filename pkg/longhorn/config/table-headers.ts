@@ -3,7 +3,7 @@ import { STATE, NAME as NAME_COL, AGE, IMAGE_NAME } from '@shell/config/table-he
 export const NODES_HEADER = [
   {
     name: 'status',
-    labelKey: 'tableHeaders.status',
+    labelKey: 'tableHeaders.state',
     value: 'nodeStatus',
     sort: ['nodeStatus.stateDisplay'],
     search: ['nodeStatus.stateDisplay'],
@@ -62,7 +62,7 @@ export const NODES_HEADER = [
 export const DISKS_HEADERS = [
   {
     name: 'status',
-    labelKey: 'tableHeaders.status',
+    labelKey: 'tableHeaders.state',
     value: 'diskStatus',
     sort: ['diskStatus.stateDisplay'],
     search: ['diskStatus.stateDisplay'],
@@ -139,7 +139,7 @@ export const DISKS_HEADERS = [
 export const VOLUMES_HEADER = [
   {
     name: 'health',
-    labelKey: 'longhorn.volume.table.header.health',
+    labelKey: 'longhorn.volume.table.header.state',
     value: 'volumeStatus',
     sort: ['volumeStatus.stateDisplay'],
     search: ['volumeStatus.stateDisplay'],
@@ -279,14 +279,6 @@ export const BACKUP_TARGETS_HEADER = [
     sort: ['$.spec.pollInterval'],
     search: '$.spec.pollInterval',
   },
-
-  {
-    name: 'available',
-    labelKey: 'longhorn.backupTarget.table.header.available',
-    value: '$.status.available',
-    sort: ['$.status.available'],
-    search: '$.status.available',
-  },
   {
     name: 'lastSyncedAt',
     labelKey: 'longhorn.backupTarget.table.header.lastSyncedAt',
@@ -309,14 +301,6 @@ export const SYSTEM_BACKUPS_HEADER = [
     search: '$.status.version',
   },
   {
-    name: 'state',
-    labelKey: 'longhorn.systemBackup.table.header.state',
-    value: '$.status.state',
-    sort: ['$.status.state'],
-    search: '$.status.state',
-  },
-
-  {
     name: 'lastSyncedAt',
     labelKey: 'longhorn.systemBackup.table.header.lastSyncedAt',
     value: '$.status.lastSyncedAt',
@@ -336,13 +320,6 @@ export const SYSTEM_RESTORE_HEADER = [
     value: 'version',
     sort: ['version'],
     search: 'version',
-  },
-  {
-    name: 'state',
-    labelKey: 'longhorn.systemRestore.table.header.state',
-    value: '$.status.state',
-    sort: ['$.status.state'],
-    search: '$.status.state',
   },
   AGE,
 ];
@@ -425,13 +402,6 @@ export const ENGINE_IMAGES_HEADER = [
   NAME_COL,
   IMAGE_NAME,
   {
-    name: 'status',
-    labelKey: 'longhorn.engineImage.table.header.status',
-    value: '$.status.state',
-    sort: ['$.status.state'],
-    search: '$.status.state',
-  },
-  {
     name: 'default',
     labelKey: 'longhorn.engineImage.table.header.default',
     value: 'isDefault',
@@ -459,13 +429,6 @@ export const ENGINE_IMAGES_HEADER = [
 export const INSTANCE_MANAGERS_HEADER = [
   STATE,
   NAME_COL,
-  {
-    name: 'status',
-    labelKey: 'longhorn.instanceManager.table.header.status',
-    value: '$.status.currentState',
-    sort: ['$.status.currentState'],
-    search: '$.status.currentState',
-  },
   {
     name: 'type',
     labelKey: 'longhorn.instanceManager.table.header.type',

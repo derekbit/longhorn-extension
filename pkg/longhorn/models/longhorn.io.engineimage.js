@@ -46,4 +46,33 @@ export default class EngineImageModel extends LonghornModel {
 
     return this.$rootGetters[`${inStore}/byId`](LONGHORN_RESOURCES.SETTINGS, LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE);
   }
+
+  get stateDescription() {
+    const failedCond = (this.status?.conditions || []).find((c) => c.status?.toLowerCase() === 'false' && c.message);
+
+    return failedCond?.message || '';
+  }
+
+  get state() {
+    const failedCond = (this.status?.conditions || []).find((c) => c.status?.toLowerCase() === 'false' && c.message);
+
+    if (failedCond) return 'error';
+
+    const s = (this.status?.state || '').toLowerCase();
+
+    if (s === 'ready') return 'active';
+    if (s === 'error') return 'error';
+    if (s === 'deploying') return 'transitioning';
+
+    return this.metadata?.state?.name || 'unknown';
+  }
+
+  get stateObj() {
+    const hasError = (this.status?.conditions || []).some((c) => c.status?.toLowerCase() === 'false' && c.message);
+
+    return {
+      ...this.metadata?.state,
+      error: hasError,
+    };
+  }
 }

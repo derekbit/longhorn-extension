@@ -96,6 +96,12 @@ defineExpose({ loadError, fetchData });
       <template #sub-row="{ row, fullColspan, onRowMouseEnter, onRowMouseLeave }">
         <tr class="sub-row" @mouseenter="onRowMouseEnter" @mouseleave="onRowMouseLeave">
           <td :colspan="fullColspan">
+            <div
+              v-if="row.nodeStatus?.stateBackground === 'bg-error' && row.nodeStatus?.message"
+              class="state-description text-error mb-10"
+            >
+              {{ row.nodeStatus.message }}
+            </div>
             <SortableTable
               key-field="id"
               :headers="DISKS_HEADERS"

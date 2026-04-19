@@ -35,7 +35,6 @@ const sizeDisplay = computed(() => {
 
   if (!size || size === 0) return '—';
 
-  // Convert bytes to human-readable format
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   let unitIndex = 0;
   let value = size;
@@ -67,24 +66,34 @@ function displayValue(val) {
       :description-hidden="true"
     />
     <Tabbed side-tabs :resource="value">
-      <Tab name="basics" label="Basics">
-        <LabelValue name="Backing Image" :value="displayValue(value?.status?.backingImage)" />
-        <LabelValue name="Backup Target" :value="displayValue(value?.spec?.backupTargetName)" />
-        <LabelValue name="State">
-          <template #value>
-            <span>{{ displayValue(value?.status?.state) }}</span>
-            <i
-              v-if="value?.status?.error"
-              v-clean-tooltip="value.status.error"
-              class="icon icon-error text-error ml-5"
-            />
-          </template>
-        </LabelValue>
-        <LabelValue name="Size" :value="sizeDisplay" />
-        <LabelValue v-if="value?.status?.progress !== undefined" name="Progress" :value="progressDisplay" />
-        <LabelValue name="URL" :value="displayValue(value?.status?.url)" />
-        <LabelValue name="Last Synced At" :value="displayValue(value?.status?.lastSyncedAt)" />
-        <LabelValue name="Checksum">
+      <Tab name="basics" :label="t('longhorn.backingImageBackup.tab.basics')">
+        <LabelValue
+          :name="t('longhorn.backingImageBackup.table.header.backingImage')"
+          :value="displayValue(value?.status?.backingImage)"
+        />
+        <LabelValue
+          :name="t('longhorn.backingImageBackup.table.header.backupTarget')"
+          :value="displayValue(value?.spec?.backupTargetName)"
+        />
+        <LabelValue
+          :name="t('longhorn.backingImageBackup.table.header.state')"
+          :value="displayValue(value?.status?.state)"
+        />
+        <LabelValue :name="t('longhorn.backingImageBackup.table.header.size')" :value="sizeDisplay" />
+        <LabelValue
+          v-if="value?.status?.progress !== undefined"
+          :name="t('longhorn.backingImageBackup.table.header.progress')"
+          :value="progressDisplay"
+        />
+        <LabelValue
+          :name="t('longhorn.backingImageBackup.table.header.url')"
+          :value="displayValue(value?.status?.url)"
+        />
+        <LabelValue
+          :name="t('longhorn.backingImageBackup.table.header.lastSyncedAt')"
+          :value="displayValue(value?.status?.lastSyncedAt)"
+        />
+        <LabelValue :name="t('longhorn.backingImageBackup.table.header.checksum')">
           <template #value>
             <span class="checksum-text">{{ displayValue(value?.status?.checksum) }}</span>
           </template>

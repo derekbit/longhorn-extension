@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { BadgeState } from '@components/BadgeState';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -33,15 +34,43 @@ const sourceTypeDisplay = computed(() => {
   return st?.label || props.value?.spec?.sourceType;
 });
 
+const STATE_BADGE_MAP = {
+  ready: { stateDisplay: 'Ready', stateBackground: 'bg-success' },
+  'in-progress': { stateDisplay: 'In Progress', stateBackground: 'bg-info' },
+  downloading: { stateDisplay: 'Downloading', stateBackground: 'bg-info' },
+  pending: { stateDisplay: 'Pending', stateBackground: 'badge-disabled' },
+  failed: { stateDisplay: 'Failed', stateBackground: 'bg-error' },
+  unknown: { stateDisplay: 'Unknown', stateBackground: 'badge-disabled' },
+};
+
 const diskFileStatuses = computed(() => {
   const diskMap = props.value?.status?.diskFileStatusMap || {};
 
-  return Object.entries(diskMap).map(([key, statusMap]) => ({
-    status: statusMap?.state,
-    message: statusMap?.message,
-    disk: key,
-    progress: statusMap?.progress ? parseInt(statusMap.progress, 10) : 0,
-  }));
+  return Object.entries(diskMap).map(([key, statusMap]) => {
+    const rawState = (statusMap?.state || 'unknown').toLowerCase();
+    const badge = STATE_BADGE_MAP[rawState] || {
+      stateDisplay: statusMap?.state || 'Unknown',
+      stateBackground: 'badge-disabled',
+    };
+    const progress = statusMap?.progress ? parseInt(statusMap.progress, 10) : 0;
+    const isInProgress = rawState === 'in-progress' || rawState === 'downloading';
+
+    return {
+      status: statusMap?.state,
+      statusBadge: {
+        ...badge,
+        stateDisplay: isInProgress && progress ? `${badge.stateDisplay} (${progress}%)` : badge.stateDisplay,
+      },
+      message: statusMap?.message,
+      disk: key,
+      progress,
+      stateObj: {
+        error: rawState === 'failed',
+        warning: !!(statusMap?.message && rawState !== 'failed'),
+      },
+      stateDescription: statusMap?.message || '',
+    };
+  });
 });
 
 const isReady = computed(() => {
@@ -52,7 +81,7 @@ const isChecksumMismatch = computed(() => {
   const expected = (props.value?.spec?.checksum || '').trim();
   const current = (props.value?.status?.checksum || '').trim();
 
-  return expected !== '' && isReady.value && expected !== current;
+  return expected !== '' && expected !== current;
 });
 
 const diskHeaders = [
@@ -176,15 +205,16 @@ ensureResourceStructure();
         </template>
 
         <LabelValue name="Current Checksum">
+          <template #name>
+            <label>Current Checksum</label>
+            <i
+              v-if="isChecksumMismatch"
+              v-clean-tooltip="t('longhorn.backingImage.checksumMismatch')"
+              class="icon icon-error text-error ml-5"
+            />
+          </template>
           <template #value>
-            <div class="checksum-container">
-              <span class="checksum-text">{{ displayValue(value?.status?.checksum) }}</span>
-              <i
-                v-if="isChecksumMismatch"
-                v-clean-tooltip="'Current checksum doesn’t match the expected value'"
-                class="icon icon-error text-error ml-5"
-              />
-            </div>
+            <span class="checksum-text">{{ displayValue(value?.status?.checksum) }}</span>
           </template>
         </LabelValue>
 
@@ -217,11 +247,7 @@ ensureResourceStructure();
         >
           <template #col:status="{ row }">
             <td>
-              <span style="text-transform: capitalize">{{ row.status }}</span>
-              <span v-if="row.status === 'in-progress' || row.status === 'downloading'" class="text-muted ml-5">
-                ({{ row.progress }}%)
-              </span>
-              <i v-if="row.message" v-clean-tooltip="row.message" class="icon icon-warning text-warning ml-5" />
+              <BadgeState :value="row.statusBadge" />
             </td>
           </template>
           <template #col:operation="{ row }">

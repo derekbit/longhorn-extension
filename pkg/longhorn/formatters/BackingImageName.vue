@@ -66,12 +66,6 @@ export default {
 
 <template>
   <div class="backing-image-name-container" @click="showDetail">
-    <i
-      v-if="isUnavailable"
-      v-clean-tooltip="'The backingImage is unavailable'"
-      class="icon icon-error icon-fw text-error"
-    />
-
     <router-link v-if="to" :to="to" class="backing-image-link">
       {{ value }}
     </router-link>

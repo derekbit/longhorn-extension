@@ -7,6 +7,19 @@ import { escapeHtml } from '@shell/utils/string';
 import { diffFrom } from '@shell/utils/time';
 import dayjs from 'dayjs';
 
+const CONDITION_BADGE = {
+  SUCCESS: 'bg-success',
+  ERROR: 'bg-error',
+  WARNING: 'bg-warning',
+  DISABLED: 'badge-disabled',
+};
+
+const CONDITION_ICON = {
+  CHECK: 'icon-checkmark',
+  ERROR: 'icon-error',
+  WARNING: 'icon-warning',
+};
+
 export default {
   name: 'VolumeDetails',
 
@@ -38,7 +51,7 @@ export default {
     },
 
     conditions() {
-      const orderedTypes = ['Restore', 'Scheduled', 'TooManySnapshots'];
+      const orderedTypes = ['Restore', 'Scheduled', 'TooManySnapshots', 'OfflineRebuilding'];
       const rawConditions = this.value?.status?.conditions || [];
 
       return orderedTypes
@@ -64,8 +77,8 @@ export default {
             const notExceeded = statusLower === 'false' || c.reason === '';
 
             if (notExceeded) {
-              stateBackground = 'bg-info';
-              icon = 'icon-warning';
+              stateBackground = CONDITION_BADGE.WARNING;
+              icon = CONDITION_ICON.WARNING;
               const snapshotMaxCount = this.value.spec?.snapshotMaxCount;
               const thresholdMsg = snapshotMaxCount
                 ? `The snapshot number threshold (${snapshotMaxCount}) has not been exceeded`
@@ -77,8 +90,8 @@ export default {
                 this.tooltipRow('Status', thresholdMsg),
               ].join('');
             } else {
-              stateBackground = 'bg-error';
-              icon = 'icon-error';
+              stateBackground = CONDITION_BADGE.ERROR;
+              icon = CONDITION_ICON.ERROR;
               tooltipContent = [
                 this.tooltipRow('Name', c.type),
                 this.tooltipRow('Last Probe Time', this.getFullTimestamp(c.lastProbeTime)),
@@ -89,17 +102,17 @@ export default {
                 this.tooltipRow('Status', c.status),
               ].join('');
             }
-          } else if (type === 'Restore') {
+          } else if (type === 'Restore' || type === 'OfflineRebuilding') {
             const isInactive = c.reason === '' && statusLower === 'false';
 
-            stateBackground = isInactive ? 'bg-info' : 'bg-success';
-            icon = 'icon-checkmark';
+            stateBackground = isInactive ? CONDITION_BADGE.DISABLED : CONDITION_BADGE.SUCCESS;
+            icon = CONDITION_ICON.CHECK;
             tooltipContent = commonRows;
           } else if (type === 'Scheduled') {
             const isScheduled = statusLower === 'true';
 
-            stateBackground = isScheduled ? 'bg-success' : 'bg-error';
-            icon = isScheduled ? 'icon-checkmark' : 'icon-error';
+            stateBackground = isScheduled ? CONDITION_BADGE.SUCCESS : CONDITION_BADGE.ERROR;
+            icon = isScheduled ? CONDITION_ICON.CHECK : CONDITION_ICON.ERROR;
             tooltipContent = commonRows;
           }
 

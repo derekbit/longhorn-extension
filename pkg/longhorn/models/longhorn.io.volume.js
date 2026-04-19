@@ -119,6 +119,14 @@ export default class VolumeModel extends LonghornModel {
     return (this.status?.replicas || []).every((r) => r.hostID !== attachedNodeId);
   }
 
+  get stateDescription() {
+    return '';
+  }
+
+  get stateObj() {
+    return this.metadata?.state || {};
+  }
+
   get volumeStatus() {
     const { state, robustness } = this;
 

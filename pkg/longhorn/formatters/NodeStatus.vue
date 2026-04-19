@@ -35,7 +35,7 @@ export default {
 
 <template>
   <div v-if="row && statusInfo" class="node-status-badge-wrapper">
-    <BadgeState v-clean-tooltip="statusInfo.message" :value="statusInfo" />
+    <BadgeState :value="statusInfo" />
   </div>
 </template>
 

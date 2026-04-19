@@ -14,4 +14,14 @@ export default class BackupBackingImageModel extends LonghornModel {
   get stateDescription() {
     return this.status?.error || '';
   }
+
+  get stateObj() {
+    const hasError = !!this.status?.error;
+
+    return {
+      ...this.metadata?.state,
+      error: hasError,
+      message: hasError ? this.stateDescription : this.metadata?.state?.message,
+    };
+  }
 }

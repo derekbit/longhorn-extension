@@ -73,7 +73,7 @@ longhorn:
       detached: Detached
     table:
       header:
-        health: Health
+        state: State
         size: Size
         actualSize: Actual Size
         dataEngine: Data Engine
@@ -140,23 +140,35 @@ longhorn:
       pollInterval:
         tooltip: Set 0 to disable the polling
   backingImageBackup:
+    tab:
+      basics: Basics
     table:
       header:
         backupTarget: Backup Target
+        backingImage: Backing Image
         size: Size
         url: URL
+        state: State
+        progress: Progress
+        lastSyncedAt: Last Synced At
+        checksum: Checksum
   systemBackup:
+    tab:
+      basics: Basics
     table:
       header:
         version: Version
         state: State
         lastSyncedAt: Last Synced At
   systemRestore:
+    tab:
+      basics: Basics
     table:
       header:
         version: Version
         state: State
   backingImage:
+    checksumMismatch: Current checksum doesn't match the expected value
     table:
       header:
         name: Name
@@ -197,6 +209,8 @@ longhorn:
     apply: Apply Changes
     noResults: No settings found matching your search
   instanceManager:
+    tab:
+      basics: Basics
     table:
       header:
         status: Status
@@ -205,6 +219,8 @@ longhorn:
         node: Node
         image: Image
   orphans:
+    tab:
+      basics: Basics
     table:
       header:
         node: Node
