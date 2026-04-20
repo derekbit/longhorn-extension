@@ -2,6 +2,15 @@ import LonghornModel from './longhorn';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
 
 export default class SystemBackupModel extends LonghornModel {
+  // State mapping specific to SystemBackup
+  static get STATE_MAP() {
+    return {
+      active: { display: 'Completed', background: 'bg-success' },
+      error: { display: 'Error', background: 'bg-error' },
+      transitioning: { display: 'In Progress', background: 'bg-warning' },
+    };
+  }
+
   get availableActions() {
     const out = super._availableActions;
     const forbiddenActions = [AVAILABLE_ACTIONS.CLONE_YAML, AVAILABLE_ACTIONS.EDIT_YAML];
@@ -32,13 +41,9 @@ export default class SystemBackupModel extends LonghornModel {
   }
 
   get _errorMessage() {
-    if (this.status?.error) return this.status.error;
+    const statusError = this.getStatusErrorMessage(() => (this.status?.state || '').toLowerCase() === 'error');
 
-    const errorCond = (this.status?.conditions || []).find(
-      (c) => c.type === 'Error' && c.status === 'True' && c.message
-    );
-
-    return errorCond?.message || '';
+    return statusError || this.findConditionMessage((c) => c.type === 'Error' && c.status === 'True');
   }
 
   get state() {
@@ -57,10 +62,33 @@ export default class SystemBackupModel extends LonghornModel {
     return this._errorMessage;
   }
 
-  get stateObj() {
-    return {
-      ...this.metadata?.state,
-      error: !!this._errorMessage,
+  get stateDisplay() {
+    const state = this.state;
+    const stateMap = {
+      active: 'Completed',
+      error: 'Error',
+      transitioning: 'In Progress',
     };
+
+    return stateMap[state] || state?.charAt(0).toUpperCase() + state?.slice(1) || 'Unknown';
+  }
+
+  get stateBackground() {
+    const state = this.state;
+
+    if (state === 'error') return 'bg-error';
+    if (state === 'transitioning') return 'bg-warning';
+
+    return 'bg-success';
+  }
+
+  get stateObj() {
+    const baseState = super.stateObj;
+    const hasError = !!this._errorMessage;
+
+    return this.buildStateObj(baseState, {
+      hasError,
+      message: hasError ? this.stateDescription : baseState?.message,
+    });
   }
 }

@@ -63,35 +63,7 @@ function displayValue(val) {
             />
           </div>
         </div>
-
-        <div v-if="value?.status?.conditions" class="row mb-20">
-          <div class="col span-12">
-            <LabelValue name="Status Message">
-              <template #value>
-                <div v-for="(condition, idx) in value.status.conditions" :key="idx" class="condition-item">
-                  <span class="condition-type">{{ condition.type }}:</span>
-                  <span
-                    :class="{ 'text-success': condition.status === 'True', 'text-error': condition.status === 'False' }"
-                  >
-                    {{ condition.status }}
-                  </span>
-                  <span v-if="condition.message" class="text-muted ml-10">{{ condition.message }}</span>
-                </div>
-              </template>
-            </LabelValue>
-          </div>
-        </div>
       </Tab>
     </Tabbed>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.condition-item {
-  margin-bottom: 5px;
-}
-.condition-type {
-  font-weight: 500;
-  margin-right: 5px;
-}
-</style>

@@ -88,6 +88,7 @@ defineExpose({ loadError, fetchData });
     <ResourceTable
       key-field="id"
       :sub-rows="true"
+      :sub-rows-description="false"
       :sub-expandable="true"
       :sub-expand-column="true"
       :rows="rows"

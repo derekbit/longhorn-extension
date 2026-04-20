@@ -13,14 +13,6 @@ const BADGE = {
 };
 
 export default class NodeModel extends LonghornModel {
-  createState(stateDisplay, stateBackground, message = '') {
-    return {
-      stateDisplay,
-      stateBackground,
-      message,
-    };
-  }
-
   getConditionStatusLower(condition) {
     return condition?.status?.toLowerCase();
   }
@@ -76,31 +68,104 @@ export default class NodeModel extends LonghornModel {
     return this.conditionsByType.Schedulable || {};
   }
 
+  get stateObj() {
+    const isReady = this.isReady;
+    const readyCond = this.readyCondition;
+
+    if (!isReady) {
+      return this.buildStateObj(
+        { state: 'down' },
+        {
+          hasError: true,
+          message: readyCond.message || '',
+        }
+      );
+    }
+
+    return this.buildStateObj({ state: 'ready' }, { hasError: false });
+  }
+
+  get stateDescription() {
+    const nodeStatus = this.nodeStatus;
+
+    return nodeStatus?.stateDisplay || 'Unknown';
+  }
+
+  get state() {
+    const nodeStatus = this.nodeStatus;
+    const stateDisplay = nodeStatus?.stateDisplay || 'Unknown';
+
+    return stateDisplay.toLowerCase();
+  }
+
+  get stateDisplay() {
+    const nodeStatus = this.nodeStatus;
+
+    return nodeStatus?.stateDisplay || 'Unknown';
+  }
+
+  get stateBackground() {
+    const nodeStatus = this.nodeStatus;
+
+    return nodeStatus?.stateBackground || BADGE.ERROR;
+  }
+
   get nodeStatus() {
     const readyCond = this.readyCondition;
     const schedulableCond = this.schedulableCondition;
 
     const isReady = this.isReady;
     const isSchedulableCondTrue = schedulableCond.status === STATUS_TRUE;
+    const allowScheduling = this.spec?.allowScheduling === true;
+    const autoEvicting = this.status?.autoEvicting === true;
 
     // Keep the same precedence as Longhorn dashboard node readiness logic.
+    // down > disabled > autoEvicting > unschedulable > schedulable
     if (!isReady) {
-      return this.createState('Down', BADGE.ERROR, readyCond.message || '');
+      return {
+        stateDisplay: 'Down',
+        stateBackground: BADGE.ERROR,
+        message: readyCond.message || '',
+      };
     }
 
     if (this.spec?.allowScheduling === false) {
-      return this.createState('Disabled', BADGE.DISABLED, schedulableCond.message || readyCond.message || '');
+      return {
+        stateDisplay: 'Disabled',
+        stateBackground: BADGE.DISABLED,
+        message: schedulableCond.message || readyCond.message || '',
+      };
+    }
+
+    if (isReady && !isSchedulableCondTrue && allowScheduling && autoEvicting) {
+      return {
+        stateDisplay: 'AutoEvicting',
+        stateBackground: BADGE.WARNING,
+        message: schedulableCond.message || readyCond.message || '',
+      };
     }
 
     if (!isSchedulableCondTrue) {
-      return this.createState('Unschedulable', BADGE.WARNING, schedulableCond.message || readyCond.message || '');
+      return {
+        stateDisplay: 'Unschedulable',
+        stateBackground: BADGE.WARNING,
+        message: schedulableCond.message || readyCond.message || '',
+      };
     }
 
     if (isReady && isSchedulableCondTrue) {
-      return this.createState('Schedulable', BADGE.SUCCESS, schedulableCond.message || readyCond.message || '');
+      return {
+        stateDisplay: 'Schedulable',
+        stateBackground: BADGE.SUCCESS,
+        message: schedulableCond.message || readyCond.message || '',
+      };
     }
 
-    return this.createState('Down', BADGE.ERROR, readyCond.message || '');
+    return {
+      stateDisplay: 'Unknown',
+      stateBackground: BADGE.ERROR,
+      message: readyCond.message || '',
+    };
   }
 
   get readiness() {
@@ -127,16 +192,32 @@ export default class NodeModel extends LonghornModel {
 
       if (nodeReadyStatus === STATUS_FALSE.toLowerCase()) {
         // Node-level errors are shown at node row level, not per disk row.
-        diskStatus = this.createState('Error', BADGE.ERROR, '');
+        diskStatus = {
+          stateDisplay: 'Error',
+          stateBackground: BADGE.ERROR,
+          message: '',
+        };
       } else if (this.spec?.allowScheduling === false || specDisk.allowScheduling === false) {
-        diskStatus = this.createState('Disabled', BADGE.DISABLED);
+        diskStatus = {
+          stateDisplay: 'Disabled',
+          stateBackground: BADGE.DISABLED,
+          message: '',
+        };
       } else if (
         nodeSchedulableStatus === STATUS_FALSE.toLowerCase() ||
         diskSchedulableStatus === STATUS_FALSE.toLowerCase()
       ) {
-        diskStatus = this.createState('Unschedulable', BADGE.WARNING, diskMessage);
+        diskStatus = {
+          stateDisplay: 'Unschedulable',
+          stateBackground: BADGE.WARNING,
+          message: diskMessage,
+        };
       } else {
-        diskStatus = this.createState('Schedulable', BADGE.SUCCESS);
+        diskStatus = {
+          stateDisplay: 'Schedulable',
+          stateBackground: BADGE.SUCCESS,
+          message: '',
+        };
       }
 
       const scheduledReplicaCounts = {
@@ -172,11 +253,23 @@ export default class NodeModel extends LonghornModel {
       };
 
       if (rawHealthStatus === 'PASSED') {
-        diskHealthStatus = this.createState('Passed', BADGE.SUCCESS, healthMessage);
+        diskHealthStatus = {
+          stateDisplay: 'Passed',
+          stateBackground: BADGE.SUCCESS,
+          message: healthMessage,
+        };
       } else if (rawHealthStatus === 'WARNING') {
-        diskHealthStatus = this.createState('Warning', BADGE.WARNING, healthMessage);
+        diskHealthStatus = {
+          stateDisplay: 'Warning',
+          stateBackground: BADGE.WARNING,
+          message: healthMessage,
+        };
       } else if (rawHealthStatus === 'FAILED') {
-        diskHealthStatus = this.createState('Failed', BADGE.ERROR, healthMessage);
+        diskHealthStatus = {
+          stateDisplay: 'Failed',
+          stateBackground: BADGE.ERROR,
+          message: healthMessage,
+        };
       }
 
       return {
@@ -190,14 +283,16 @@ export default class NodeModel extends LonghornModel {
         diskStatus,
         diskHealthStatus,
         diskTags: specDisk.tags || [],
-        stateObj: {
-          error: diskStatus.stateBackground === BADGE.ERROR,
-          warning: diskStatus.stateBackground === BADGE.WARNING,
-        },
-        stateDescription:
-          diskStatus.stateBackground === BADGE.ERROR || diskStatus.stateBackground === BADGE.WARNING
-            ? diskStatus.message || ''
-            : '',
+        stateObj: this.buildStateObj(
+          {},
+          {
+            hasError: diskStatus.stateBackground === BADGE.ERROR,
+            message:
+              diskStatus.stateBackground === BADGE.ERROR || diskStatus.stateBackground === BADGE.WARNING
+                ? diskStatus.message
+                : '',
+          }
+        ),
       };
     });
   }

@@ -54,12 +54,6 @@ function displayValue(val) {
             />
           </div>
         </div>
-
-        <div v-if="value?.status?.error" class="row mb-20">
-          <div class="col span-12">
-            <LabelValue name="Error" :value="value.status.error" />
-          </div>
-        </div>
       </Tab>
     </Tabbed>
   </div>

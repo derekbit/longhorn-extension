@@ -123,8 +123,16 @@ export default class VolumeModel extends LonghornModel {
     return '';
   }
 
+  get stateDisplay() {
+    return this.volumeStatus?.stateDisplay || this.getDisplayForState('unknown');
+  }
+
+  get stateBackground() {
+    return this.volumeStatus?.stateBackground || this.getBackgroundForState('unknown');
+  }
+
   get stateObj() {
-    return this.metadata?.state || {};
+    return this.buildStateObj(this.metadata?.state || {});
   }
 
   get volumeStatus() {

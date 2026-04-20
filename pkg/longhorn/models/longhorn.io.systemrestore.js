@@ -3,6 +3,15 @@ import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 
 export default class SystemRestoreModel extends LonghornModel {
+  // State mapping specific to SystemRestore
+  static get STATE_MAP() {
+    return {
+      active: { display: 'Completed', background: 'bg-success' },
+      error: { display: 'Error', background: 'bg-error' },
+      transitioning: { display: 'In Progress', background: 'bg-warning' },
+    };
+  }
+
   get availableActions() {
     const out = super._availableActions;
     const forbiddenActions = [AVAILABLE_ACTIONS.CLONE_YAML];
@@ -33,13 +42,9 @@ export default class SystemRestoreModel extends LonghornModel {
   }
 
   get _errorMessage() {
-    if (this.status?.error) return this.status.error;
+    const statusError = this.getStatusErrorMessage(() => (this.status?.state || '').toLowerCase() === 'error');
 
-    const errorCond = (this.status?.conditions || []).find(
-      (c) => c.type === 'Error' && c.status === 'True' && c.message
-    );
-
-    return errorCond?.message || '';
+    return statusError || this.findConditionMessage((c) => c.type === 'Error' && c.status === 'True');
   }
 
   get state() {
@@ -58,10 +63,21 @@ export default class SystemRestoreModel extends LonghornModel {
     return this._errorMessage;
   }
 
+  get stateDisplay() {
+    return this.getDisplayForState(this.state, SystemRestoreModel.STATE_MAP);
+  }
+
+  get stateBackground() {
+    return this.getBackgroundForState(this.state, SystemRestoreModel.STATE_MAP);
+  }
+
   get stateObj() {
-    return {
-      ...this.metadata?.state,
-      error: !!this._errorMessage,
-    };
+    const baseState = super.stateObj;
+    const hasError = !!this._errorMessage;
+
+    return this.buildStateObj(baseState, {
+      hasError,
+      message: hasError ? this.stateDescription : baseState?.message,
+    });
   }
 }

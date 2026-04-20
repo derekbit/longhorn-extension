@@ -3,6 +3,15 @@ import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 
 export default class EngineImageModel extends LonghornModel {
+  // State mapping specific to EngineImage
+  static get STATE_MAP() {
+    return {
+      active: { display: 'Ready', background: 'bg-success' },
+      error: { display: 'Error', background: 'bg-error' },
+      transitioning: { display: 'Deploying', background: 'bg-warning' },
+    };
+  }
+
   get availableActions() {
     const out = super._availableActions
       .filter((action) => ![AVAILABLE_ACTIONS.CLONE].includes(action.action))
@@ -48,13 +57,11 @@ export default class EngineImageModel extends LonghornModel {
   }
 
   get stateDescription() {
-    const failedCond = (this.status?.conditions || []).find((c) => c.status?.toLowerCase() === 'false' && c.message);
-
-    return failedCond?.message || '';
+    return this.findConditionMessage((c) => c.status?.toLowerCase() === 'false');
   }
 
   get state() {
-    const failedCond = (this.status?.conditions || []).find((c) => c.status?.toLowerCase() === 'false' && c.message);
+    const failedCond = this.stateDescription;
 
     if (failedCond) return 'error';
 
@@ -67,12 +74,21 @@ export default class EngineImageModel extends LonghornModel {
     return this.metadata?.state?.name || 'unknown';
   }
 
-  get stateObj() {
-    const hasError = (this.status?.conditions || []).some((c) => c.status?.toLowerCase() === 'false' && c.message);
+  get stateDisplay() {
+    return this.getDisplayForState(this.state, EngineImageModel.STATE_MAP);
+  }
 
-    return {
-      ...this.metadata?.state,
-      error: hasError,
-    };
+  get stateBackground() {
+    return this.getBackgroundForState(this.state, EngineImageModel.STATE_MAP);
+  }
+
+  get stateObj() {
+    const baseState = super.stateObj;
+    const hasError = !!this.stateDescription;
+
+    return this.buildStateObj(baseState, {
+      hasError,
+      message: hasError ? this.stateDescription : baseState?.message,
+    });
   }
 }

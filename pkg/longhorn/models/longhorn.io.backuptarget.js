@@ -2,6 +2,14 @@ import LonghornModel from './longhorn';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
 
 export default class BackupTargetModel extends LonghornModel {
+  // State mapping specific to BackupTarget
+  static get STATE_MAP() {
+    return {
+      error: { display: 'Unavailable', background: 'bg-error' },
+      active: { display: 'Available', background: 'bg-success' },
+    };
+  }
+
   get availableActions() {
     const out = super._availableActions;
     const forbiddenActions = [AVAILABLE_ACTIONS.CLONE];
@@ -18,11 +26,7 @@ export default class BackupTargetModel extends LonghornModel {
   }
 
   get _errorMessage() {
-    const errorCond = (this.status?.conditions || []).find(
-      (c) => c.type === 'Unavailable' && c.status === 'True' && c.message
-    );
-
-    return errorCond?.message || '';
+    return this.findConditionMessage((c) => c.type === 'Unavailable' && c.status === 'True');
   }
 
   get state() {
@@ -35,13 +39,21 @@ export default class BackupTargetModel extends LonghornModel {
     return this._errorMessage;
   }
 
+  get stateDisplay() {
+    return this.getDisplayForState(this.state, BackupTargetModel.STATE_MAP);
+  }
+
+  get stateBackground() {
+    return this.getBackgroundForState(this.state, BackupTargetModel.STATE_MAP);
+  }
+
   get stateObj() {
+    const baseState = super.stateObj;
     const hasError = this._isUnavailable || !!this._errorMessage;
 
-    return {
-      ...this.metadata?.state,
-      error: hasError,
-      message: hasError ? this.stateDescription : this.metadata?.state?.message,
-    };
+    return this.buildStateObj(baseState, {
+      hasError,
+      message: hasError ? this.stateDescription : baseState?.message,
+    });
   }
 }
