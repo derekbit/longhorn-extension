@@ -12,27 +12,40 @@ defaults:
 
 jobs:
   build-extension-charts:
-    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@master
+    runs-on: ubuntu-latest
     permissions:
       actions: write
       contents: write
       deployments: write
       pages: write
-    with:
-      target_branch: gh-pages
-      tagged_release: ${{ github.ref_name }}
-
-  check-build-status:
-    name: Check build status
-    needs: build-extension-charts
-    if: always()
-    runs-on: ubuntu-latest
     steps:
-      - name: Fail if build was not successful
-        if: needs.build-extension-charts.outputs.build-job-status != 'success'
-        run: |
-          echo "::error::Build job failed with status: ${{ needs.build-extension-charts.outputs.build-job-status }}"
-          exit 1
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Build successful
-        run: echo "Build completed successfully"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build package
+        run: yarn build-pkg
+
+      - name: Publish to GitHub Pages
+        if: github.event_name == 'release'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist-pkg
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'chore: publish extension charts for ${{ github.ref_name }}'
