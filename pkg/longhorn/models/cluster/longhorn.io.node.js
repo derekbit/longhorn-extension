@@ -276,6 +276,8 @@ export default class NodeModel extends LonghornModel {
         id,
         ...specDisk,
         ...statusDisk,
+        diskType: specDisk?.diskType?.trim?.() ? specDisk.diskType : '',
+        path: specDisk?.path?.trim?.() ? specDisk.path : '',
         scheduledReplicaCounts,
         diskAllocated,
         diskUsed,

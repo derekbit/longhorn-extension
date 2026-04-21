@@ -72,17 +72,12 @@ export default {
         {{ nodeId }}
       </router-link>
 
-      <!-- <span v-else>
+      <span v-else>
         {{ nodeId }}
         <template v-if="!nodeId && col.dashIfEmpty">
           <span class="text-muted">&mdash;</span>
         </template>
-        <span v-else-if="!nodeId" class="text-muted">-</span>
       </span>
-
-      <span v-if="region || zone" v-clean-tooltip="tooltip" class="ml-5">
-        <i class="icon icon-globe" />
-      </span> -->
     </div>
   </div>
 </template>

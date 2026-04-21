@@ -32,7 +32,7 @@ const tooltipMessage = computed(() => {
 <template>
   <span v-clean-tooltip="tooltipMessage">
     <span v-if="displayText">{{ displayText }}</span>
-    <span v-else class="text-muted">-</span>
+    <span v-else class="text-muted">&mdash;</span>
   </span>
 </template>
 

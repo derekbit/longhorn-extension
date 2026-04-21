@@ -1,5 +1,6 @@
 <script>
 import cronstrue from 'cronstrue';
+import { EMPTY_DISPLAY } from '@longhorn/types/display';
 
 export default {
   props: {
@@ -10,7 +11,7 @@ export default {
   },
   computed: {
     friendly() {
-      if (!this.value) return '—';
+      if (!this.value) return EMPTY_DISPLAY;
       try {
         return cronstrue.toString(this.value, { use24HourTimeFormat: true });
       } catch (e) {

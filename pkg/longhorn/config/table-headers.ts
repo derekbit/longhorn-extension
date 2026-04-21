@@ -20,6 +20,7 @@ export const NODES_HEADER = [
     value: 'readiness',
     sort: ['readiness'],
     search: 'readiness',
+    dashIfEmpty: true,
     width: 140,
   },
   {
@@ -75,12 +76,14 @@ export const DISKS_HEADERS = [
     labelKey: 'longhorn.node.table.header.diskId',
     value: 'id',
     sort: ['id'],
+    dashIfEmpty: true,
     width: 200,
   },
   {
     name: 'diskType',
     labelKey: 'longhorn.node.table.header.diskType',
     value: 'diskType',
+    dashIfEmpty: true,
     width: 100,
   },
   {
@@ -88,6 +91,7 @@ export const DISKS_HEADERS = [
     labelKey: 'longhorn.node.table.header.path',
     value: 'path',
     sort: ['path'],
+    dashIfEmpty: true,
     width: 100,
   },
   {
@@ -170,6 +174,7 @@ export const VOLUMES_HEADER = [
     labelKey: 'longhorn.volume.table.header.dataEngine',
     value: '$.spec.dataEngine',
     sort: ['$.spec.dataEngine'],
+    dashIfEmpty: true,
     align: 'center',
     width: 80,
   },
@@ -216,6 +221,7 @@ export const RECURRING_JOBS_HEADER = [
     value: 'taskDisplay',
     sort: ['spec.task'],
     search: ['spec.task', 'taskDisplay'],
+    dashIfEmpty: true,
   },
   {
     name: 'cron',
@@ -223,6 +229,7 @@ export const RECURRING_JOBS_HEADER = [
     value: 'cronDisplay',
     sort: ['spec.cron'],
     search: ['spec.cron'],
+    dashIfEmpty: true,
   },
   {
     name: 'retain',
@@ -230,6 +237,7 @@ export const RECURRING_JOBS_HEADER = [
     value: '$.spec.retain',
     sort: ['$.spec.retain'],
     search: '$.spec.retain',
+    dashIfEmpty: true,
   },
   {
     name: 'concurrency',
@@ -237,6 +245,7 @@ export const RECURRING_JOBS_HEADER = [
     value: '$.spec.concurrency',
     sort: ['$.spec.concurrency'],
     search: '$.spec.concurrency',
+    dashIfEmpty: true,
   },
   {
     name: 'groups',
@@ -244,6 +253,7 @@ export const RECURRING_JOBS_HEADER = [
     value: 'groupsDisplay',
     sort: ['spec.groups'],
     search: ['spec.groups', 'groupsDisplay'],
+    dashIfEmpty: true,
   },
   {
     name: 'labels',
@@ -251,6 +261,7 @@ export const RECURRING_JOBS_HEADER = [
     value: 'labelsDisplay',
     sort: ['spec.labels'],
     search: ['spec.labels', 'labelsDisplay'],
+    dashIfEmpty: true,
   },
   AGE,
 ];
@@ -264,6 +275,7 @@ export const BACKUP_TARGETS_HEADER = [
     value: '$.spec.backupTargetURL',
     sort: ['$.spec.backupTargetURL'],
     search: '$.spec.backupTargetURL',
+    dashIfEmpty: true,
   },
   {
     name: 'credentialSecret',
@@ -271,6 +283,7 @@ export const BACKUP_TARGETS_HEADER = [
     value: '$.spec.credentialSecret',
     sort: ['$.spec.credentialSecret'],
     search: '$.spec.credentialSecret',
+    dashIfEmpty: true,
   },
   {
     name: 'pollInterval',
@@ -278,6 +291,7 @@ export const BACKUP_TARGETS_HEADER = [
     value: '$.spec.pollInterval',
     sort: ['$.spec.pollInterval'],
     search: '$.spec.pollInterval',
+    dashIfEmpty: true,
   },
   {
     name: 'lastSyncedAt',
@@ -299,6 +313,7 @@ export const SYSTEM_BACKUPS_HEADER = [
     value: '$.status.version',
     sort: ['$.status.version'],
     search: '$.status.version',
+    dashIfEmpty: true,
   },
   {
     name: 'lastSyncedAt',
@@ -320,6 +335,7 @@ export const SYSTEM_RESTORE_HEADER = [
     value: 'version',
     sort: ['version'],
     search: 'version',
+    dashIfEmpty: true,
   },
   AGE,
 ];
@@ -340,6 +356,7 @@ export const BACKING_IMAGES_HEADER = [
     value: '$.status.uuid',
     sort: ['$.status.uuid'],
     search: '$.status.uuid',
+    dashIfEmpty: true,
     tooltip: '',
   },
   {
@@ -366,6 +383,7 @@ export const BACKING_IMAGES_HEADER = [
     value: '$.spec.sourceType',
     sort: ['$.spec.sourceType'],
     search: '$.spec.sourceType',
+    dashIfEmpty: true,
   },
   {
     name: 'minNumberOfCopies',
@@ -373,6 +391,7 @@ export const BACKING_IMAGES_HEADER = [
     value: '$.spec.minNumberOfCopies',
     sort: ['$.spec.minNumberOfCopies'],
     search: '$.spec.minNumberOfCopies',
+    dashIfEmpty: true,
     align: 'center',
   },
   {
@@ -381,6 +400,7 @@ export const BACKING_IMAGES_HEADER = [
     value: '$.spec.dataEngine',
     sort: ['$.spec.dataEngine'],
     search: '$.spec.dataEngine',
+    dashIfEmpty: true,
     align: 'center',
   },
   {
@@ -414,6 +434,7 @@ export const ENGINE_IMAGES_HEADER = [
     value: '$.status.refCount',
     sort: ['$.status.refCount'],
     search: '$.status.refCount',
+    dashIfEmpty: true,
     align: 'center',
   },
   {
@@ -435,6 +456,7 @@ export const INSTANCE_MANAGERS_HEADER = [
     value: '$.spec.type',
     sort: ['$.spec.type'],
     search: '$.spec.type',
+    dashIfEmpty: true,
     align: 'center',
   },
   {
@@ -443,6 +465,7 @@ export const INSTANCE_MANAGERS_HEADER = [
     value: '$.spec.dataEngine',
     sort: ['$.spec.dataEngine'],
     search: '$.spec.dataEngine',
+    dashIfEmpty: true,
     align: 'center',
   },
   {
@@ -459,6 +482,7 @@ export const INSTANCE_MANAGERS_HEADER = [
     value: '$.spec.image',
     sort: ['$.spec.image'],
     search: '$.spec.image',
+    dashIfEmpty: true,
   },
   AGE,
 ];
@@ -483,6 +507,7 @@ export const ORPHANS_HEADER = [
     value: '$.spec.orphanType',
     sort: ['$.spec.orphanType'],
     search: '$.spec.orphanType',
+    dashIfEmpty: true,
   },
   {
     name: 'dataName',
@@ -490,6 +515,7 @@ export const ORPHANS_HEADER = [
     value: '$.spec.parameters.DataName',
     sort: ['$.spec.parameters.DataName'],
     search: '$.spec.parameters.DataName',
+    dashIfEmpty: true,
   },
   {
     name: 'diskName',
@@ -497,6 +523,7 @@ export const ORPHANS_HEADER = [
     value: '$.spec.parameters.DiskName',
     sort: ['$.spec.parameters.DiskName'],
     search: '$.spec.parameters.DiskName',
+    dashIfEmpty: true,
   },
   {
     name: 'diskPath',
@@ -504,6 +531,7 @@ export const ORPHANS_HEADER = [
     value: '$.spec.parameters.DiskPath',
     sort: ['$.spec.parameters.DiskPath'],
     search: '$.spec.parameters.DiskPath',
+    dashIfEmpty: true,
   },
   {
     name: 'instanceName',
@@ -511,6 +539,7 @@ export const ORPHANS_HEADER = [
     value: '$.spec.parameters.InstanceName',
     sort: ['$.spec.parameters.InstanceName'],
     search: '$.spec.parameters.InstanceName',
+    dashIfEmpty: true,
   },
   {
     name: 'instanceManager',
@@ -518,6 +547,7 @@ export const ORPHANS_HEADER = [
     value: '$.spec.parameters.InstanceManager',
     sort: ['$.spec.parameters.InstanceManager'],
     search: '$.spec.parameters.InstanceManager',
+    dashIfEmpty: true,
   },
   {
     name: 'dataEngine',
@@ -525,6 +555,7 @@ export const ORPHANS_HEADER = [
     value: '$.spec.dataEngine',
     sort: ['$.spec.dataEngine'],
     search: '$.spec.dataEngine',
+    dashIfEmpty: true,
     align: 'center',
   },
   AGE,
@@ -539,6 +570,7 @@ export const BACKING_IMAGE_BACKUPS_HEADER = [
     value: '$.spec.backupTargetName',
     sort: ['$.spec.backupTargetName'],
     search: '$.spec.backupTargetName',
+    dashIfEmpty: true,
   },
   {
     name: 'size',
