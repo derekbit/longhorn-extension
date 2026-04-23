@@ -1,13 +1,7 @@
 <script>
 import SortableTable from '@shell/components/SortableTable';
 import { BadgeState } from '@components/BadgeState';
-import NodeName from '@longhorn/formatters/NodeName';
-
-const SYNC_MODE_MAP = {
-  rw: { label: 'Healthy', color: 'bg-info' },
-  wo: { label: 'Rebuilding', color: 'bg-warning' },
-  err: { label: 'Failed', color: 'bg-error' },
-};
+import { getReplicaSyncStatus } from '@longhorn/utils/replica-status';
 
 export default {
   name: 'VolumeReplicas',
@@ -15,7 +9,6 @@ export default {
   components: {
     SortableTable,
     BadgeState,
-    NodeName,
   },
 
   props: {
@@ -51,10 +44,7 @@ export default {
         const mode = (engineCrd?.status?.replicaModeMap?.[replicaName] || '').toLowerCase();
         const hasFailed = !!(replica.status?.failedAt || replica.spec?.failedAt);
 
-        const syncState =
-          hasFailed || mode === 'err'
-            ? SYNC_MODE_MAP.err
-            : SYNC_MODE_MAP[mode] || { label: 'Unknown', color: 'bg-darker' };
+        const syncState = getReplicaSyncStatus({ mode, hasFailed });
 
         const canDelete = this.value.isAttached;
         const deleteDisabledTooltip = !canDelete
@@ -66,7 +56,7 @@ export default {
           id: replica.id || replicaName,
           name: replicaName,
           shortName,
-          syncModeText: syncState.label,
+          syncModeKey: syncState.key,
           syncModeColor: syncState.color,
           processRunning: replica.status?.currentState === 'running',
           hostId: replica.spec?.nodeID || '',
@@ -82,16 +72,16 @@ export default {
     tableHeaders() {
       return [
         {
+          name: 'sync-state',
+          label: this.t('longhorn.replica.table.header.state'),
+          value: 'syncModeKey',
+          width: 100,
+        },
+        {
           name: 'process-state',
           label: 'Process',
           value: 'processRunning',
           width: 80,
-        },
-        {
-          name: 'sync-state',
-          label: 'Sync State',
-          value: 'syncModeText',
-          width: 100,
         },
         {
           name: 'short-name',
@@ -156,7 +146,7 @@ export default {
 
       <template #col:sync-state="{ row }">
         <td>
-          <BadgeState :label="row.syncModeText" :color="row.syncModeColor" />
+          <BadgeState :label="t(`longhorn.replica.status.${row.syncModeKey}`)" :color="row.syncModeColor" />
         </td>
       </template>
 

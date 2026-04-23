@@ -4,12 +4,30 @@ generic:
   trueOption: 'True'
   falseOption: 'False'
   edit: Edit
+nodeReplicasList:
+  title: Replicas on {node}
+  titleForDisk: Replicas on {disk}
+  table:
+    header:
+      replica: Replica
+      operation: Operation
 validation:
   field: Field
   duplicate: '{key} must be unique'
 error:
   fetchError: 'Error loading data: {message}'
 longhorn:
+  replica:
+    table:
+      header:
+        state: State
+    status:
+      healthy: Healthy
+      rebuilding: Rebuilding
+      err: Error
+      failed: Failed
+      stopped: Stopped
+      unknown: Unknown
   dashboard:
     title: Dashboard
     version: Version
@@ -31,7 +49,7 @@ longhorn:
     disabled: Disabled
     table:
       header:
-        ready: Ready
+        readiness: Readiness
         schedulable: Schedulable
         replicas: Replicas
         allocated: Allocated
@@ -42,6 +60,12 @@ longhorn:
         diskId: Disk ID
         diskType: Type
         path: Path
+    tooltip:
+      replicas: Replicas
+      backingImages: Backing Images
+      used: Used
+      capacity: Capacity
+      usage: Usage
     tab:
       basics: Basics
       disks: Disks
@@ -69,7 +93,7 @@ longhorn:
       healthy: Healthy
       degraded: Degraded
       inProgress: In Progress
-      faulty: Faulty
+      faulted: Faulted
       detached: Detached
     table:
       header:

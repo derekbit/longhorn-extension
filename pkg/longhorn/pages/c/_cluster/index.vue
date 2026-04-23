@@ -6,6 +6,7 @@ import Events from '@longhorn/components/Dashboard/Events';
 import LiveDate from '@shell/components/formatter/LiveDate';
 import { allHash } from '@shell/utils/promise';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
+import { VOLUME_STATE, VOLUME_STATE_ORDER } from '@longhorn/types/volume';
 import { bytesToGi } from '@longhorn/utils/formatter';
 import { GiB_UNIT } from '@longhorn/types/units';
 
@@ -119,39 +120,36 @@ export default {
 
     getVolumeChartData() {
       const counts = {
-        Healthy: 0,
-        Degraded: 0,
-        InProgress: 0,
-        Faulty: 0,
-        Detached: 0,
+        [VOLUME_STATE.HEALTHY]: 0,
+        [VOLUME_STATE.DEGRADED]: 0,
+        [VOLUME_STATE.IN_PROGRESS]: 0,
+        [VOLUME_STATE.FAULTED]: 0,
+        [VOLUME_STATE.DETACHED]: 0,
       };
 
       this.volumes.forEach((v) => {
-        const s = v.status;
-        const state = s?.state;
-        const robust = s?.robustness;
+        const stateFilter = v.dashboardStateDisplay || VOLUME_STATE.IN_PROGRESS;
 
-        if (state === 'detached' && robust === 'faulted') counts.Faulty++;
-        else if (state === 'attached' && robust === 'degraded') counts.Degraded++;
-        else if (state === 'attached' && robust === 'healthy') counts.Healthy++;
-        else if (state === 'detached') counts.Detached++;
-        else counts.InProgress++;
+        if (Object.prototype.hasOwnProperty.call(counts, stateFilter)) {
+          counts[stateFilter]++;
+        }
       });
 
       const volumeLabels = [
         this.t('longhorn.volume.state.healthy'),
         this.t('longhorn.volume.state.degraded'),
         this.t('longhorn.volume.state.inProgress'),
-        this.t('longhorn.volume.state.faulty'),
+        this.t('longhorn.volume.state.faulted'),
         this.t('longhorn.volume.state.detached'),
       ];
 
       return {
         title: this.t('longhorn.dashboard.volume.title'),
         labels: volumeLabels,
+        filterValues: VOLUME_STATE_ORDER,
         datasets: [
           {
-            data: Object.values(counts),
+            data: VOLUME_STATE_ORDER.map((state) => counts[state]),
             backgroundColor: [
               LONGHORN_COLORS.SUCCESS,
               LONGHORN_COLORS.WARNING,
@@ -202,7 +200,13 @@ export default {
         [NODE_STATUS.DISABLED]: 0,
       };
 
-      this.nodes.forEach((n) => counts[this.getNodeStatus(n)]++);
+      this.nodes.forEach((node) => {
+        const stateFilter = this.getNodeStatus(node);
+
+        if (Object.prototype.hasOwnProperty.call(counts, stateFilter)) {
+          counts[stateFilter]++;
+        }
+      });
 
       const nodeLabels = [
         this.t('longhorn.node.schedulable'),
@@ -214,6 +218,7 @@ export default {
       return {
         title: this.t('longhorn.dashboard.node.title'),
         labels: nodeLabels,
+        filterValues: [NODE_STATUS.SCHEDULABLE, NODE_STATUS.UNSCHEDULABLE, NODE_STATUS.DOWN, NODE_STATUS.DISABLED],
         datasets: [
           {
             data: [

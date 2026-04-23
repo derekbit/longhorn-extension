@@ -1,4 +1,5 @@
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
+import { VOLUME_STATE } from '@longhorn/types/volume';
 import { resolveKubernetesStatus } from '@longhorn/utils/json';
 import LonghornModel from './longhorn';
 
@@ -161,6 +162,49 @@ export default class VolumeModel extends LonghornModel {
     }
 
     return { stateDisplay: this.displayState, stateBackground: BADGE.DISABLED, message: '' };
+  }
+
+  // Keep dashboard metric labels and list query filtering in sync.
+  get dashboardStateDisplay() {
+    const { state, robustness } = this;
+
+    if (state === VolumeModel.STATES.DETACHED && robustness === ROBUSTNESS.FAULTED) {
+      return VOLUME_STATE.FAULTED;
+    }
+
+    if (state === VolumeModel.STATES.ATTACHED && robustness === ROBUSTNESS.DEGRADED) {
+      return VOLUME_STATE.DEGRADED;
+    }
+
+    if (state === VolumeModel.STATES.ATTACHED && robustness === ROBUSTNESS.HEALTHY) {
+      return VOLUME_STATE.HEALTHY;
+    }
+
+    if (state === VolumeModel.STATES.DETACHED) {
+      return VOLUME_STATE.DETACHED;
+    }
+
+    return VOLUME_STATE.IN_PROGRESS;
+  }
+
+  // Space-delimited host IDs used for simple table filtering by replica location.
+  get replicaNodeIds() {
+    const inStore = this.$rootGetters['currentProduct']?.inStore;
+    const allReplicas = inStore ? this.$rootGetters[`${inStore}/all`]?.(LONGHORN_RESOURCES.REPLICAS) || [] : [];
+    const volumeName = this.metadata?.name || this.id;
+    const relatedReplicas = allReplicas.filter(
+      (replica) => replica?.spec?.volumeName === volumeName || replica?.volumeName === volumeName
+    );
+    const replicas = this.status?.replicas?.length
+      ? this.status.replicas
+      : this.replicas?.length
+        ? this.replicas
+        : relatedReplicas;
+    const ids = replicas
+      .map((replica) => replica?.hostID || replica?.hostId || replica?.spec?.nodeID || replica?.spec?.nodeId)
+      .filter((id) => !!id);
+
+    return [...new Set(ids)].join(' ');
   }
 
   get kubernetesStatus() {

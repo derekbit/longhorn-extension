@@ -1,0 +1,15 @@
+export const VOLUME_STATE = {
+  HEALTHY: 'Healthy',
+  DEGRADED: 'Degraded',
+  IN_PROGRESS: 'In Progress',
+  FAULTED: 'Faulted',
+  DETACHED: 'Detached',
+};
+
+export const VOLUME_STATE_ORDER = [
+  VOLUME_STATE.HEALTHY,
+  VOLUME_STATE.DEGRADED,
+  VOLUME_STATE.IN_PROGRESS,
+  VOLUME_STATE.FAULTED,
+  VOLUME_STATE.DETACHED,
+];

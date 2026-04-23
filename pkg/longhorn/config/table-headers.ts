@@ -2,12 +2,11 @@ import { STATE, NAME as NAME_COL, AGE, IMAGE_NAME } from '@shell/config/table-he
 
 export const NODES_HEADER = [
   {
+    ...STATE,
     name: 'status',
-    labelKey: 'tableHeaders.state',
-    value: 'nodeStatus',
+    value: 'stateDisplay',
     sort: ['nodeStatus.stateDisplay'],
     search: ['nodeStatus.stateDisplay'],
-    formatter: 'NodeStatus',
     width: 120,
   },
   {
@@ -16,7 +15,7 @@ export const NODES_HEADER = [
   },
   {
     name: 'readiness',
-    labelKey: 'longhorn.node.table.header.ready',
+    labelKey: 'longhorn.node.table.header.readiness',
     value: 'readiness',
     sort: ['readiness'],
     search: 'readiness',
@@ -27,7 +26,8 @@ export const NODES_HEADER = [
     name: 'replicas',
     labelKey: 'longhorn.node.table.header.replicas',
     value: 'replicas',
-    formatter: 'Link',
+    search: 'replicas',
+    formatter: 'NodeReplicas',
     width: 80,
     align: 'center',
   },
@@ -62,14 +62,12 @@ export const NODES_HEADER = [
 
 export const DISKS_HEADERS = [
   {
+    ...STATE,
     name: 'status',
-    labelKey: 'tableHeaders.state',
-    value: 'diskStatus',
+    value: 'stateDisplay',
     sort: ['diskStatus.stateDisplay'],
     search: ['diskStatus.stateDisplay'],
-    formatter: 'NodeStatus',
     width: 100,
-    align: 'center',
   },
   {
     name: 'id',
@@ -98,7 +96,7 @@ export const DISKS_HEADERS = [
     name: 'replicas',
     labelKey: 'longhorn.node.table.header.replicas',
     value: 'scheduledReplicaCounts',
-    formatter: 'Link',
+    formatter: 'NodeReplicas',
     width: 80,
     align: 'center',
   },
@@ -146,7 +144,7 @@ export const VOLUMES_HEADER = [
     labelKey: 'longhorn.volume.table.header.state',
     value: 'volumeStatus',
     sort: ['volumeStatus.stateDisplay'],
-    search: ['volumeStatus.stateDisplay'],
+    search: ['volumeStatus.stateDisplay', 'dashboardStateDisplay'],
     formatter: 'VolumeHealth',
     width: 120,
   },
@@ -199,6 +197,7 @@ export const VOLUMES_HEADER = [
     name: 'node',
     labelKey: 'longhorn.volume.table.header.node',
     value: 'kubernetesStatus',
+    search: ['replicaNodeIds', 'spec.nodeId:exact', 'spec.nodeID:exact', 'status.currentNodeID:exact'],
     formatter: 'VolumeNode',
   },
   {

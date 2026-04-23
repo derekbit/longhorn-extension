@@ -10,6 +10,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { randomStr } from '@shell/utils/string';
+import { CONDITION_STATUS, NODE_BADGE } from '@longhorn/types/node';
 
 import Basics from './Basics';
 import Disks from './Disks';
@@ -87,10 +88,10 @@ export default {
 
     fvExtraRules() {
       return {
-        diskNameUnique: (val) => {
+        diskNameUnique: (diskName) => {
           const disks = Object.values(this.value.spec?.disks || {});
 
-          return disks.filter((d) => d.name === val).length > 1
+          return disks.filter((disk) => disk.name === diskName).length > 1
             ? this.t('validation.duplicate', { key: this.t('longhorn.node.form.name') })
             : undefined;
         },
@@ -100,10 +101,10 @@ export default {
     tabErrors() {
       const hasError = (fields) =>
         fields.some((field) => {
-          const val = get(this.value, field.path);
+          const fieldValue = get(this.value, field.path);
           const rules = this.fvGetPathRules(field.path) || [];
 
-          return rules.some((rule) => typeof rule(val) === 'string');
+          return rules.some((rule) => typeof rule(fieldValue) === 'string');
         });
 
       return {
@@ -173,24 +174,30 @@ export default {
     },
 
     mapConditions(conditions = []) {
-      return (Array.isArray(conditions) ? conditions : []).map((c) => {
-        const isError = c.error || c.status === 'False';
-        const isSuccess = c.status === 'True' && !isError;
+      return (Array.isArray(conditions) ? conditions : []).map((condition) => {
+        const isError = condition.error || condition.status === CONDITION_STATUS.FALSE;
+        const isSuccess = condition.status === CONDITION_STATUS.TRUE && !isError;
 
         return {
-          key: c.type,
-          tooltip: c.message,
+          key: condition.type,
+          tooltip: condition.message,
           value: {
             stateBackground: isError
-              ? 'bg-error'
-              : c.transitioning
-                ? 'bg-warning'
+              ? NODE_BADGE.ERROR
+              : condition.transitioning
+                ? NODE_BADGE.WARNING
                 : isSuccess
-                  ? 'bg-success'
-                  : 'bg-info',
-            stateDisplay: c.type,
+                  ? NODE_BADGE.SUCCESS
+                  : NODE_BADGE.INFO,
+            stateDisplay: condition.type,
           },
-          icon: isError ? 'icon-error' : c.transitioning ? 'icon-warning' : isSuccess ? 'icon-checkmark' : 'icon-info',
+          icon: isError
+            ? 'icon-error'
+            : condition.transitioning
+              ? 'icon-warning'
+              : isSuccess
+                ? 'icon-checkmark'
+                : 'icon-info',
         };
       });
     },
@@ -241,21 +248,21 @@ export default {
 
   watch: {
     validationSchema: {
-      handler(neu) {
-        const all = [...neu.basics, ...neu.disks];
+      handler(newValidationSchema) {
+        const allValidationFields = [...newValidationSchema.basics, ...newValidationSchema.disks];
 
-        this.fvFormRuleSets = this.buildRuleSetConfig(all);
+        this.fvFormRuleSets = this.buildRuleSetConfig(allValidationFields);
 
-        this.fvReportedValidationPaths = all.map((field) => field.path);
+        this.fvReportedValidationPaths = allValidationFields.map((field) => field.path);
       },
       immediate: true,
       deep: true,
     },
 
     'value.spec.disks': {
-      handler(neu) {
-        if (!neu) return;
-        const { hasChanged, normalizedDisks } = this.normalizeDisks(neu);
+      handler(newDisks) {
+        if (!newDisks) return;
+        const { hasChanged, normalizedDisks } = this.normalizeDisks(newDisks);
 
         if (hasChanged) {
           this.value.spec = { ...this.value.spec, disks: normalizedDisks };

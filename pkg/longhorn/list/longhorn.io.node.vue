@@ -7,6 +7,7 @@ import SortableTable from '@shell/components/SortableTable';
 import Banner from '@components/Banner/Banner';
 import { allHash } from '@shell/utils/promise';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
+import { NODE_BADGE } from '@longhorn/types/node';
 import { DISKS_HEADERS } from '@longhorn/config/table-headers';
 
 const props = defineProps({
@@ -25,6 +26,7 @@ const MISSING_STORE_NAMESPACE_ERROR = 'Vuex store namespace not found.';
 
 const isLoading = ref(true);
 const loadError = ref(null);
+const nodeErrorBadge = NODE_BADGE.ERROR;
 
 const inStore = computed(() => store.getters['currentProduct'].inStore);
 const getAll = (type) => {
@@ -56,6 +58,7 @@ async function fetchData() {
     const hash = {
       nodes: dispatchInStore('findAll', { type: props.resource }),
       volumes: dispatchInStore('findAll', { type: LONGHORN_RESOURCES.VOLUMES }),
+      replicas: dispatchInStore('findAll', { type: LONGHORN_RESOURCES.REPLICAS }),
       defaultStorageOverProvisioningPercentage: dispatchInStore('find', {
         type: LONGHORN_RESOURCES.SETTINGS,
         id: LONGHORN_SETTINGS.STORAGE_OVER_PROVISIONING_PERCENTAGE,
@@ -91,6 +94,7 @@ defineExpose({ loadError, fetchData });
       :sub-rows-description="false"
       :sub-expandable="true"
       :sub-expand-column="true"
+      :use-query-params-for-simple-filtering="true"
       :rows="rows"
       :schema="props.schema"
     >
@@ -98,7 +102,7 @@ defineExpose({ loadError, fetchData });
         <tr class="sub-row" @mouseenter="onRowMouseEnter" @mouseleave="onRowMouseLeave">
           <td :colspan="fullColspan">
             <div
-              v-if="row.nodeStatus?.stateBackground === 'bg-error' && row.nodeStatus?.message"
+              v-if="row.nodeStatus?.stateBackground === nodeErrorBadge && row.nodeStatus?.message"
               class="state-description text-error mb-10"
             >
               {{ row.nodeStatus.message }}

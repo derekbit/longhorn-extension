@@ -1,10 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
 import SemiDoughnut from '@longhorn/components/Charts/SemiDoughnut';
 import { useTooltip, formatTooltipContent } from '@longhorn/components/Charts/composable';
 import Link from '@shell/components/formatter/Link';
+import { PRODUCT_NAME } from '@longhorn/types/longhorn';
+import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 
 const props = defineProps({
   title: {
@@ -23,6 +26,7 @@ const props = defineProps({
 
 const { t } = useI18n(useStore());
 const { showTooltip, hideTooltip } = useTooltip();
+const route = useRoute();
 
 const activeIndex = ref(null);
 
@@ -31,6 +35,22 @@ const dataset = computed(() => props.chartData.datasets?.[0] ?? { data: [], back
 const isLinkableResource = computed(() =>
   ['longhorn.dashboard.node.title', 'longhorn.dashboard.volume.title'].includes(props.chartData.resourceNameKey)
 );
+
+const resourceTypeByChart = computed(() => {
+  const chartResource = props.chartData.resourceNameKey;
+
+  if (chartResource === 'longhorn.dashboard.node.title') {
+    return LONGHORN_RESOURCES.NODES;
+  }
+
+  if (chartResource === 'longhorn.dashboard.volume.title') {
+    return LONGHORN_RESOURCES.VOLUMES;
+  }
+
+  return null;
+});
+
+const listRouteName = `c-cluster-${PRODUCT_NAME}-resource`;
 
 const total = computed(() => {
   const sum = dataset.value.data.reduce((a, b) => a + b, 0);
@@ -43,11 +63,27 @@ const rows = computed(() =>
     const value = dataset.value.data[index] ?? 0;
     const isEmpty = value === 0;
     const isLinkable = isLinkableResource.value && !isEmpty;
+    const filterValue = String(props.chartData.filterValues?.[index] ?? label);
+    const to =
+      isLinkable && resourceTypeByChart.value
+        ? {
+            name: listRouteName,
+            params: {
+              cluster: route.params.cluster,
+              resource: resourceTypeByChart.value,
+            },
+            query: {
+              ...route.query,
+              q: filterValue,
+            },
+          }
+        : null;
 
     return {
       key: label,
       label,
       value,
+      to,
       displayValue: isEmpty ? '—' : props.chartData.suffix ? `${value} ${props.chartData.suffix}` : `${value}`,
       isEmpty,
       isLinkable,
@@ -118,7 +154,7 @@ function handleRowLeave() {
               'secondary-text-link': row.isLinkable,
               'text-secondary': row.isEmpty,
             }"
-            v-bind="row.isLinkable ? { value: row.label, options: { internal: true } } : {}"
+            v-bind="row.isLinkable ? { value: { text: row.label, to: row.to }, options: { internal: true } } : {}"
           >
             <template v-if="!row.isLinkable">
               {{ row.label }}
