@@ -181,7 +181,7 @@ export const VOLUMES_HEADER = [
   {
     name: 'pvPvc',
     labelKey: 'longhorn.volume.table.header.pvPvc',
-    value: '$.status.kubernetesStatus',
+    value: 'kubernetesStatus',
     formatter: 'VolumePvPvc',
     align: 'center',
     width: 100,
@@ -189,8 +189,8 @@ export const VOLUMES_HEADER = [
   {
     name: 'namespace',
     labelKey: 'tableHeaders.namespace',
-    value: '$.status.kubernetesStatus.namespace',
-    sort: ['$.status.kubernetesStatus.namespace'],
+    value: 'kubernetesStatus.namespace',
+    sort: ['kubernetesStatus.namespace'],
     dashIfEmpty: true,
     align: 'center',
     width: 100,
@@ -198,7 +198,7 @@ export const VOLUMES_HEADER = [
   {
     name: 'node',
     labelKey: 'longhorn.volume.table.header.node',
-    value: '$.status.kubernetesStatus',
+    value: 'kubernetesStatus',
     formatter: 'VolumeNode',
   },
   {
@@ -300,6 +300,58 @@ export const BACKUP_TARGETS_HEADER = [
     sort: ['$.status.lastSyncedAt'],
     search: '$.status.lastSyncedAt',
     formatter: 'LiveDate',
+  },
+  AGE,
+];
+
+export const BACKUP_VOLUMES_HEADER = [
+  STATE,
+  {
+    name: 'volumeName',
+    label: 'Volume',
+    value: 'volumeName',
+    sort: ['volumeName'],
+    search: 'volumeName',
+    dashIfEmpty: true,
+    formatter: 'BackupVolumeName',
+  },
+  {
+    name: 'size',
+    label: 'Size',
+    value: 'size',
+    sort: ['size'],
+    search: 'size',
+    formatter: 'Si',
+  },
+  {
+    name: 'backupTargetName',
+    label: 'Backup Target',
+    value: 'backupTargetName',
+    sort: ['backupTargetName'],
+    search: 'backupTargetName',
+    dashIfEmpty: true,
+  },
+  {
+    name: 'lastBackupAt',
+    label: 'Last Backup At',
+    value: 'lastBackupAt',
+    sort: ['lastBackupAt'],
+    search: 'lastBackupAt',
+    formatter: 'LiveDate',
+  },
+  {
+    name: 'pvPvc',
+    label: 'PV/PVC',
+    value: 'kubernetesStatus',
+    formatter: 'VolumePvPvc',
+    align: 'center',
+    width: 120,
+  },
+  {
+    name: 'node',
+    label: 'Workload/Pod',
+    value: 'kubernetesStatus',
+    formatter: 'VolumeNode',
   },
   AGE,
 ];

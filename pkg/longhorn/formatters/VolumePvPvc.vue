@@ -1,12 +1,17 @@
 <script setup>
 import { computed } from 'vue';
 import dayjs from 'dayjs';
+import { parseJsonObject } from '@longhorn/utils/json';
 
 const props = defineProps({
   value: {
-    type: Object,
+    type: [Object, String],
     default: () => ({}),
   },
+});
+
+const statusSource = computed(() => {
+  return parseJsonObject(props.value);
 });
 
 const formatDate = (date) => {
@@ -14,7 +19,7 @@ const formatDate = (date) => {
 };
 
 const statusText = computed(() => {
-  const { pvName, pvcName, namespace, lastPVCRefAt } = props.value;
+  const { pvName, pvcName, namespace, lastPVCRefAt } = statusSource.value;
 
   if (!pvName) return '';
   if (!pvcName && !namespace) return 'Available';
@@ -25,7 +30,7 @@ const statusText = computed(() => {
 });
 
 const tooltipContent = computed(() => {
-  const { pvName, pvStatus, pvcName, lastPVCRefAt } = props.value;
+  const { pvName, pvStatus, pvcName, lastPVCRefAt } = statusSource.value;
 
   if (!pvName) return '';
 

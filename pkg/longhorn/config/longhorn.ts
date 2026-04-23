@@ -5,6 +5,7 @@ import {
   NODES_HEADER,
   RECURRING_JOBS_HEADER,
   BACKUP_TARGETS_HEADER,
+  BACKUP_VOLUMES_HEADER,
   SYSTEM_BACKUPS_HEADER,
   SYSTEM_RESTORE_HEADER,
   VOLUMES_HEADER,
@@ -14,8 +15,32 @@ import {
   BACKING_IMAGE_BACKUPS_HEADER,
 } from './table-headers';
 
+// Navigation configuration - list items to control order and weight
+const NAV_TOP_LEVEL = [
+  { type: LONGHORN_PAGES.DASHBOARD, weight: 999 },
+  { type: LONGHORN_RESOURCES.NODES, weight: 800 },
+  { type: LONGHORN_RESOURCES.VOLUMES, weight: 700 },
+  { type: LONGHORN_RESOURCES.RECURRING_JOBS, weight: 600 },
+];
+
+const NAV_BACKUP_AND_RESTORE = [
+  { type: LONGHORN_RESOURCES.BACKUP_VOLUMES, weight: 450 },
+  { type: LONGHORN_RESOURCES.BACKING_IMAGE_BACKUPS, weight: 400 },
+  { type: LONGHORN_RESOURCES.BACKUP_TARGETS, weight: 350 },
+  { type: LONGHORN_RESOURCES.SYSTEM_BACKUPS, weight: 300 },
+  { type: LONGHORN_RESOURCES.SYSTEM_RESTORE, weight: 250 },
+];
+
+const NAV_ADVANCED = [
+  { type: LONGHORN_RESOURCES.BACKING_IMAGES, weight: 400 },
+  { type: LONGHORN_RESOURCES.ORPHANS, weight: 380 },
+  { type: LONGHORN_RESOURCES.ENGINE_IMAGES, weight: 360 },
+  { type: LONGHORN_RESOURCES.INSTANCE_MANAGERS, weight: 340 },
+  { type: LONGHORN_RESOURCES.SETTINGS, weight: 320 },
+];
+
 export function init($plugin: any, store: any) {
-  const { product, basicType, configureType, virtualType, mapType, headers, weightType } = $plugin.DSL(
+  const { product, basicType, configureType, virtualType, mapType, headers, weightType, weightGroup } = $plugin.DSL(
     store,
     PRODUCT_NAME
   );
@@ -87,8 +112,9 @@ export function init($plugin: any, store: any) {
   headers(LONGHORN_RESOURCES.BACKUP_TARGETS, BACKUP_TARGETS_HEADER);
 
   // Backup Volumes
-  configureType(LONGHORN_RESOURCES.BACKUP_VOLUMES);
+  configureType(LONGHORN_RESOURCES.BACKUP_VOLUMES, { isCreatable: false, isEditable: false });
   mapType(LONGHORN_RESOURCES.BACKUP_VOLUMES, LONGHORN_PAGES.BACKUP_VOLUMES);
+  headers(LONGHORN_RESOURCES.BACKUP_VOLUMES, BACKUP_VOLUMES_HEADER);
 
   // Backing Image Backups
   configureType(LONGHORN_RESOURCES.BACKING_IMAGE_BACKUPS, { isCreatable: false, isEditable: false });
@@ -137,35 +163,28 @@ export function init($plugin: any, store: any) {
   headers(LONGHORN_RESOURCES.ORPHANS, ORPHANS_HEADER);
 
   // ----- Sidebar configuration ----- //
-  basicType([
-    LONGHORN_PAGES.DASHBOARD,
-    LONGHORN_RESOURCES.NODES,
-    LONGHORN_RESOURCES.VOLUMES,
-    LONGHORN_RESOURCES.RECURRING_JOBS,
-    LONGHORN_RESOURCES.SETTINGS,
-  ]);
+  basicType(NAV_TOP_LEVEL.map((item) => item.type));
   basicType(
-    [
-      // LONGHORN_RESOURCES.BACKUP_VOLUMES,
-      LONGHORN_RESOURCES.BACKUP_TARGETS,
-      LONGHORN_RESOURCES.BACKING_IMAGE_BACKUPS,
-      LONGHORN_RESOURCES.SYSTEM_BACKUPS,
-      LONGHORN_RESOURCES.SYSTEM_RESTORE,
-    ],
+    NAV_BACKUP_AND_RESTORE.map((item) => item.type),
     LONGHORN_GROUP.BACKUP_AND_RESTORE
   );
   basicType(
-    [
-      LONGHORN_RESOURCES.BACKING_IMAGES,
-      LONGHORN_RESOURCES.ENGINE_IMAGES,
-      LONGHORN_RESOURCES.INSTANCE_MANAGERS,
-      LONGHORN_RESOURCES.ORPHANS,
-    ],
+    NAV_ADVANCED.map((item) => item.type),
     LONGHORN_GROUP.ADVANCED
   );
-  weightType(LONGHORN_PAGES.DASHBOARD, 999, true);
-  weightType(LONGHORN_RESOURCES.NODES, 800, true);
-  weightType(LONGHORN_RESOURCES.VOLUMES, 700, true);
-  weightType(LONGHORN_RESOURCES.RECURRING_JOBS, 600, true);
-  weightType(LONGHORN_RESOURCES.SETTINGS, 100, true);
+
+  // Apply weights
+  NAV_TOP_LEVEL.forEach((item) => {
+    weightType(item.type, item.weight, true);
+  });
+
+  weightGroup(LONGHORN_GROUP.BACKUP_AND_RESTORE, 500, true);
+  NAV_BACKUP_AND_RESTORE.forEach((item) => {
+    weightType(item.type, item.weight, true);
+  });
+
+  weightGroup(LONGHORN_GROUP.ADVANCED, 200, true);
+  NAV_ADVANCED.forEach((item) => {
+    weightType(item.type, item.weight, true);
+  });
 }

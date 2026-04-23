@@ -1,4 +1,5 @@
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
+import { resolveKubernetesStatus } from '@longhorn/utils/json';
 import LonghornModel from './longhorn';
 
 const BADGE = {
@@ -160,6 +161,16 @@ export default class VolumeModel extends LonghornModel {
     }
 
     return { stateDisplay: this.displayState, stateBackground: BADGE.DISABLED, message: '' };
+  }
+
+  get kubernetesStatus() {
+    const metadataLabels = this.labels || this.metadata?.labels || {};
+
+    return resolveKubernetesStatus({
+      value: this.status?.kubernetesStatus,
+      statusLabels: this.status?.labels,
+      metadataLabels,
+    });
   }
 
   get inStore() {
