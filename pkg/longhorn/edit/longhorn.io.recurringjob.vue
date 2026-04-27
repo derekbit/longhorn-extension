@@ -17,16 +17,31 @@ import { randomStr } from '@shell/utils/string';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
-import { RECURRING_JOB_TASK, PARAM_KEYS, VOLUME_BACKUP_POLICY } from '@longhorn/types/recurringjob';
+import {
+  PARAM_KEYS,
+  RECURRING_JOB_DEFAULT_SPEC,
+  RECURRING_JOB_FORCE_CREATE_SUPPORTED_TASKS,
+  RECURRING_JOB_FORCE_CREATE_SUFFIX,
+  RECURRING_JOB_TASK,
+  RECURRING_JOB_TASKS_WITHOUT_GROUPS_AND_LABELS,
+  RECURRING_JOB_TASKS_WITHOUT_RETAIN,
+  RECURRING_JOB_TASKS_WITH_PARAMETERS,
+  VOLUME_BACKUP_POLICY,
+} from '@longhorn/types/recurringjob';
+import { sanitizeRecurringJobParameters } from '@longhorn/utils/recurringjob';
 
-const DEFAULT_SPEC = {
-  retain: 1,
-  concurrency: 1,
-  cron: '0 0 * * *',
-  groups: [],
-  labels: {},
-  parameters: {},
-};
+const RECURRING_JOB_TASK_OPTIONS = [
+  { key: 'backup', value: RECURRING_JOB_TASK.BACKUP },
+  { key: 'snapshot', value: RECURRING_JOB_TASK.SNAPSHOT },
+  { key: 'snapshotDelete', value: RECURRING_JOB_TASK.SNAPSHOT_DELETE },
+  { key: 'snapshotCleanup', value: RECURRING_JOB_TASK.SNAPSHOT_CLEANUP },
+  { key: 'systemBackup', value: RECURRING_JOB_TASK.SYSTEM_BACKUP },
+  { key: 'filesystemTrim', value: RECURRING_JOB_TASK.FILESYSTEM_TRIM },
+];
+
+function cloneDefaultSpec() {
+  return JSON.parse(JSON.stringify(RECURRING_JOB_DEFAULT_SPEC));
+}
 
 export default {
   name: 'EditRecurringJob',
@@ -65,7 +80,6 @@ export default {
       LONGHORN_NAMESPACE,
       RECURRING_JOB_TASK,
       PARAM_KEYS,
-      VOLUME_BACKUP_POLICY,
       fvFormRuleSets: [],
       showCronModal: false,
       forceCreate: false,
@@ -74,32 +88,10 @@ export default {
 
   computed: {
     taskOptions() {
-      return [
-        {
-          label: this.t(`longhorn.recurringJob.form.taskOptions.backup`),
-          value: RECURRING_JOB_TASK.BACKUP,
-        },
-        {
-          label: this.t(`longhorn.recurringJob.form.taskOptions.snapshot`),
-          value: RECURRING_JOB_TASK.SNAPSHOT,
-        },
-        {
-          label: this.t(`longhorn.recurringJob.form.taskOptions.snapshotDelete`),
-          value: RECURRING_JOB_TASK.SNAPSHOT_DELETE,
-        },
-        {
-          label: this.t(`longhorn.recurringJob.form.taskOptions.snapshotCleanup`),
-          value: RECURRING_JOB_TASK.SNAPSHOT_CLEANUP,
-        },
-        {
-          label: this.t(`longhorn.recurringJob.form.taskOptions.systemBackup`),
-          value: RECURRING_JOB_TASK.SYSTEM_BACKUP,
-        },
-        {
-          label: this.t(`longhorn.recurringJob.form.taskOptions.filesystemTrim`),
-          value: RECURRING_JOB_TASK.FILESYSTEM_TRIM,
-        },
-      ];
+      return RECURRING_JOB_TASK_OPTIONS.map((taskOption) => ({
+        label: this.t(`longhorn.recurringJob.form.taskOptions.${taskOption.key}`),
+        value: taskOption.value,
+      }));
     },
 
     parameterKeyOptions() {
@@ -109,36 +101,59 @@ export default {
     },
 
     volumeBackupPolicyOptions() {
-      return Object.values(VOLUME_BACKUP_POLICY).map((v) => ({
-        label: v,
-        value: v,
+      return Object.values(VOLUME_BACKUP_POLICY).map((policy) => ({
+        label: policy,
+        value: policy,
       }));
     },
 
     canAddParameter() {
       if (this.mode === _VIEW) return false;
-      const params = this.value?.spec?.parameters || {};
-      const currentKeys = Object.keys(params).filter((k) => k !== '');
+      const parameterMap = this.value?.spec?.parameters || {};
+      const currentParameterKeys = Object.keys(parameterMap).filter((parameterKey) => parameterKey !== '');
 
-      return currentKeys.length < this.parameterKeyOptions.length;
+      return currentParameterKeys.length < this.parameterKeyOptions.length;
     },
 
     isForceCreateSupported() {
-      return [RECURRING_JOB_TASK.BACKUP, RECURRING_JOB_TASK.SNAPSHOT].includes(this.localTask);
+      return RECURRING_JOB_FORCE_CREATE_SUPPORTED_TASKS.includes(this.localTask);
+    },
+
+    shouldShowConcurrency() {
+      return this.localTask !== RECURRING_JOB_TASK.SYSTEM_BACKUP;
+    },
+
+    shouldShowLabelsAndGroups() {
+      return !RECURRING_JOB_TASKS_WITHOUT_GROUPS_AND_LABELS.includes(this.localTask);
+    },
+
+    shouldShowParameters() {
+      return RECURRING_JOB_TASKS_WITH_PARAMETERS.includes(this.localTask);
+    },
+
+    isRetainDisabled() {
+      return RECURRING_JOB_TASKS_WITHOUT_RETAIN.includes(this.localTask) || this.mode === _VIEW;
+    },
+
+    forceCreateTooltip() {
+      return this.t('longhorn.recurringJob.form.forceCreateTooltip', {
+        resource: this.localTask === RECURRING_JOB_TASK.BACKUP ? 'backups' : 'snapshots',
+      });
     },
 
     localTask: {
       get() {
-        return (this.value?.spec?.task || '').replace('-force-create', '');
+        return (this.value?.spec?.task || '').replace(RECURRING_JOB_FORCE_CREATE_SUFFIX, '');
       },
-      set(val) {
+      set(task) {
         if (!this.value.spec) set(this.value, 'spec', {});
-        const finalTask =
-          this.forceCreate && [RECURRING_JOB_TASK.SNAPSHOT, RECURRING_JOB_TASK.BACKUP].includes(val)
-            ? `${val}-force-create`
-            : val;
 
-        set(this.value.spec, 'task', finalTask);
+        const taskWithForceCreate =
+          this.forceCreate && RECURRING_JOB_FORCE_CREATE_SUPPORTED_TASKS.includes(task)
+            ? `${task}${RECURRING_JOB_FORCE_CREATE_SUFFIX}`
+            : task;
+
+        set(this.value.spec, 'task', taskWithForceCreate);
       },
     },
 
@@ -174,14 +189,14 @@ export default {
         });
       }
 
-      const params = this.value?.spec?.parameters || {};
+      const parameterMap = this.value?.spec?.parameters || {};
 
-      Object.keys(params).forEach((key) => {
-        if (key?.trim()) {
+      Object.keys(parameterMap).forEach((parameterKey) => {
+        if (parameterKey?.trim()) {
           const rules = ['required'];
 
-          if (key === PARAM_KEYS.FULL_BACKUP_INTERVAL) rules.push('requiredInt', 'min:0', 'isPositive');
-          basics.push({ path: `spec.parameters.${key}`, rules });
+          if (parameterKey === PARAM_KEYS.FULL_BACKUP_INTERVAL) rules.push('requiredInt', 'min:0', 'isPositive');
+          basics.push({ path: `spec.parameters.${parameterKey}`, rules });
         }
       });
 
@@ -194,10 +209,10 @@ export default {
       if (!schema?.basics) return { basics: false };
       const hasError = (fields) =>
         fields.some((field) => {
-          const val = get(this.value, field.path);
+          const fieldValue = get(this.value, field.path);
           const rules = this.fvGetPathRules(field.path) || [];
 
-          return rules.some((rule) => typeof rule(val) === 'string');
+          return rules.some((rule) => typeof rule(fieldValue) === 'string');
         });
 
       return { basics: hasError(schema.basics) };
@@ -222,11 +237,11 @@ export default {
         if (!this.value.spec.task) set(this.value.spec, 'task', RECURRING_JOB_TASK.SNAPSHOT);
       }
 
-      this.forceCreate = !!this.value.spec.task?.endsWith('-force-create');
+      this.forceCreate = !!this.value.spec.task?.endsWith(RECURRING_JOB_FORCE_CREATE_SUFFIX);
 
-      Object.entries(DEFAULT_SPEC).forEach(([key, val]) => {
-        if (this.value.spec[key] === undefined) {
-          set(this.value.spec, key, JSON.parse(JSON.stringify(val)));
+      Object.entries(cloneDefaultSpec()).forEach(([specKey, specValue]) => {
+        if (this.value.spec[specKey] === undefined) {
+          set(this.value.spec, specKey, specValue);
         }
       });
 
@@ -242,32 +257,31 @@ export default {
       if (!this.value.spec.parameters) set(this.value.spec, 'parameters', {});
 
       const task = this.localTask;
-      const params = this.value.spec.parameters;
+      const parameterMap = sanitizeRecurringJobParameters(this.value.spec.parameters);
+      const defaultParameterMap = {};
 
       if (task === RECURRING_JOB_TASK.SYSTEM_BACKUP) {
-        if (params[PARAM_KEYS.VOLUME_BACKUP_POLICY] === undefined) {
-          set(this.value.spec.parameters, PARAM_KEYS.VOLUME_BACKUP_POLICY, VOLUME_BACKUP_POLICY.IF_NOT_PRESENT);
-        }
-      } else if (task === RECURRING_JOB_TASK.BACKUP && params[''] !== undefined) {
-        set(this.value.spec, 'parameters', {});
+        defaultParameterMap[PARAM_KEYS.VOLUME_BACKUP_POLICY] = VOLUME_BACKUP_POLICY.IF_NOT_PRESENT;
       }
+
+      set(this.value.spec, 'parameters', { ...defaultParameterMap, ...parameterMap });
     },
 
     addParameter() {
-      const available = this.parameterKeyOptions;
-      const params = JSON.parse(JSON.stringify(this.value.spec.parameters || {}));
+      const availableParameterKeys = this.parameterKeyOptions;
+      const parameterMap = JSON.parse(JSON.stringify(this.value.spec.parameters || {}));
 
-      const nextKey = available.find((k) => k && !Object.keys(params).includes(k));
+      const nextParameterKey = availableParameterKeys.find(
+        (parameterKey) => parameterKey && !Object.keys(parameterMap).includes(parameterKey)
+      );
 
-      if (nextKey) {
-        if (params[''] !== undefined) delete params[''];
+      if (nextParameterKey) {
+        const sanitizedParameterMap = sanitizeRecurringJobParameters(parameterMap);
 
-        const defaultVal =
+        sanitizedParameterMap[nextParameterKey] =
           this.localTask === RECURRING_JOB_TASK.SYSTEM_BACKUP ? VOLUME_BACKUP_POLICY.IF_NOT_PRESENT : '0';
 
-        params[nextKey] = defaultVal;
-
-        set(this.value.spec, 'parameters', { ...params });
+        set(this.value.spec, 'parameters', sanitizedParameterMap);
       }
     },
 
@@ -277,12 +291,7 @@ export default {
 
       try {
         if (this.value.metadata?.name) this.value.spec.name = this.value.metadata.name;
-        const finalParams = { ...this.value.spec.parameters };
-
-        Object.keys(finalParams).forEach((k) => {
-          if (!k || k.trim() === '') delete finalParams[k];
-        });
-        set(this.value.spec, 'parameters', finalParams);
+        set(this.value.spec, 'parameters', sanitizeRecurringJobParameters(this.value.spec.parameters));
 
         await this.actuallySave();
         buttonDone(true);
@@ -296,31 +305,33 @@ export default {
 
   watch: {
     validationSchema: {
-      handler(neu) {
-        const all = neu?.basics || [];
+      handler(newSchema) {
+        const allValidationFields = newSchema?.basics || [];
 
-        this.fvFormRuleSets = all;
-        this.fvReportedValidationPaths = all.map((field) => field.path);
+        this.fvFormRuleSets = allValidationFields;
+        this.fvReportedValidationPaths = allValidationFields.map((field) => field.path);
       },
       immediate: true,
       deep: true,
     },
 
-    async localTask(neu, old) {
-      if (neu === old || !this.value.spec) return;
+    async localTask(newTask, oldTask) {
+      if (newTask === oldTask || !this.value.spec) return;
 
       set(this.value.spec, 'parameters', {});
 
-      Object.entries(DEFAULT_SPEC).forEach(([key, val]) => {
-        set(this.value.spec, key, JSON.parse(JSON.stringify(val)));
+      Object.entries(cloneDefaultSpec()).forEach(([specKey, specValue]) => {
+        set(this.value.spec, specKey, specValue);
       });
 
       this.initParametersByTask();
 
       await this.$nextTick();
 
-      if (neu === RECURRING_JOB_TASK.FILESYSTEM_TRIM) set(this.value.spec, 'retain', 0);
-      if (neu === RECURRING_JOB_TASK.SYSTEM_BACKUP) set(this.value.spec, 'concurrency', 1);
+      if (RECURRING_JOB_TASKS_WITHOUT_RETAIN.includes(newTask)) {
+        set(this.value.spec, 'retain', 0);
+      }
+      if (newTask === RECURRING_JOB_TASK.SYSTEM_BACKUP) set(this.value.spec, 'concurrency', 1);
     },
   },
 };
@@ -357,9 +368,7 @@ export default {
             <div v-if="isForceCreateSupported" class="col span-6 force-create">
               <Checkbox
                 v-model:value="forceCreate"
-                v-clean-tooltip="
-                  `Create ${localTask === RECURRING_JOB_TASK.BACKUP ? 'backups' : 'snapshots'} periodically.`
-                "
+                v-clean-tooltip="forceCreateTooltip"
                 :mode="mode"
                 :disabled="mode !== _CREATE"
                 :label="t('longhorn.recurringJob.form.forceCreate')"
@@ -377,13 +386,13 @@ export default {
                 :label="t('longhorn.recurringJob.table.header.retain')"
                 :min="0"
                 :rules="fvGetAndReportPathRules('spec.retain')"
-                :disabled="localTask === RECURRING_JOB_TASK.FILESYSTEM_TRIM || mode === _VIEW"
+                :disabled="isRetainDisabled"
                 required
               />
             </div>
           </div>
 
-          <div v-if="localTask !== RECURRING_JOB_TASK.SYSTEM_BACKUP" class="row mb-20">
+          <div v-if="shouldShowConcurrency" class="row mb-20">
             <div class="col span-6">
               <LabeledInput
                 v-model:value.number="value.spec.concurrency"
@@ -415,10 +424,7 @@ export default {
             </div>
           </div>
 
-          <div
-            v-if="[RECURRING_JOB_TASK.BACKUP, RECURRING_JOB_TASK.SYSTEM_BACKUP].includes(localTask)"
-            class="row mt-40"
-          >
+          <div v-if="shouldShowParameters" class="row mt-40">
             <div class="col span-12">
               <KeyValue
                 v-model:value="value.spec.parameters"
@@ -435,7 +441,7 @@ export default {
                 <template #key="{ row }"
                   ><LabeledSelect
                     v-model:value="row.key"
-                    label="Key"
+                    :label="t('longhorn.recurringJob.form.key')"
                     :options="parameterKeyOptions"
                     :mode="mode"
                     disabled
@@ -444,7 +450,7 @@ export default {
                   <LabeledSelect
                     v-if="localTask === RECURRING_JOB_TASK.SYSTEM_BACKUP"
                     v-model:value="row.value"
-                    label="Value"
+                    :label="t('longhorn.recurringJob.form.value')"
                     :options="volumeBackupPolicyOptions"
                     :mode="mode"
                     :rules="fvGetAndReportPathRules(`spec.parameters.${row.key}`)"
@@ -453,7 +459,7 @@ export default {
                   <LabeledInput
                     v-else
                     v-model:value="row.value"
-                    label="Value"
+                    :label="t('longhorn.recurringJob.form.value')"
                     :mode="mode"
                     :type="row.key === PARAM_KEYS.FULL_BACKUP_INTERVAL ? 'number' : 'text'"
                     :rules="row.key ? fvGetAndReportPathRules(`spec.parameters.${row.key}`) : []"
@@ -493,11 +499,7 @@ export default {
           </div>
         </Tab>
 
-        <Tab
-          v-if="localTask !== RECURRING_JOB_TASK.SYSTEM_BACKUP"
-          name="labels"
-          label-key="longhorn.recurringJob.tab.labels"
-        >
+        <Tab v-if="shouldShowLabelsAndGroups" name="labels" label-key="longhorn.recurringJob.tab.labels">
           <ArrayList
             v-model:value="value.spec.groups"
             :mode="mode"

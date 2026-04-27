@@ -225,9 +225,10 @@ export const RECURRING_JOBS_HEADER = [
   {
     name: 'cron',
     labelKey: 'longhorn.recurringJob.table.header.schedule',
-    value: 'cronDisplay',
+    value: '$.spec.cron',
     sort: ['spec.cron'],
     search: ['spec.cron'],
+    formatter: 'CronSchedule',
     dashIfEmpty: true,
   },
   {
@@ -237,6 +238,7 @@ export const RECURRING_JOBS_HEADER = [
     sort: ['$.spec.retain'],
     search: '$.spec.retain',
     dashIfEmpty: true,
+    align: 'center',
   },
   {
     name: 'concurrency',
@@ -244,6 +246,15 @@ export const RECURRING_JOBS_HEADER = [
     value: '$.spec.concurrency',
     sort: ['$.spec.concurrency'],
     search: '$.spec.concurrency',
+    dashIfEmpty: true,
+    align: 'center',
+  },
+  {
+    name: 'parameters',
+    labelKey: 'longhorn.recurringJob.table.header.parameters',
+    value: 'parametersDisplay',
+    sort: ['spec.parameters'],
+    search: ['spec.parameters', 'parametersDisplay'],
     dashIfEmpty: true,
   },
   {

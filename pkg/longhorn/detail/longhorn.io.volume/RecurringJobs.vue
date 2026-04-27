@@ -1,12 +1,11 @@
 <script>
 import SortableTable from '@shell/components/SortableTable';
-import { LONGHORN_LABELS } from '@longhorn/types/resources';
-
-const STATUS = { ENABLED: 'enabled' };
-const PREFIX = {
-  JOB: `${LONGHORN_LABELS.RECURRING_JOB}/`,
-  GROUP: `${LONGHORN_LABELS.RECURRING_JOB_GROUP}/`,
-};
+import {
+  formatRecurringJobCron,
+  formatRecurringJobGroups,
+  formatRecurringJobTask,
+  getRecurringJobSelectorsFromLabels,
+} from '@longhorn/utils/recurringjob';
 
 export default {
   name: 'VolumeRecurringJobs',
@@ -30,22 +29,7 @@ export default {
 
   computed: {
     currentSelectors() {
-      const labels = this.value?.metadata?.labels || {};
-
-      return Object.entries(labels).reduce(
-        (acc, [key, value]) => {
-          if (value?.toLowerCase() !== STATUS.ENABLED) return acc;
-
-          if (key.startsWith(PREFIX.JOB)) {
-            acc.jobs.push(key.replace(PREFIX.JOB, ''));
-          } else if (key.startsWith(PREFIX.GROUP)) {
-            acc.groups.push(key.replace(PREFIX.GROUP, ''));
-          }
-
-          return acc;
-        },
-        { jobs: [], groups: [] }
-      );
+      return getRecurringJobSelectorsFromLabels(this.value?.metadata?.labels || {});
     },
 
     jobRows() {
@@ -53,16 +37,16 @@ export default {
 
       return jobs
         .map((name) => {
-          const matchedJob = this.recurringJobData.find((j) => (j.metadata?.name || j.name) === name);
+          const matchedJob = this.recurringJobData.find((job) => (job.metadata?.name || job.name) === name);
           const spec = matchedJob?.spec || {};
 
           return {
             id: name,
             name,
             isAlreadyDeleted: !matchedJob,
-            task: spec.task || '—',
-            groups: spec.groups || [],
-            cron: spec.cron || '',
+            taskDisplay: formatRecurringJobTask(spec.task),
+            groupsDisplay: formatRecurringJobGroups(spec.groups || []),
+            cronDisplay: formatRecurringJobCron(spec.cron),
             labels: spec.labels || {},
             retain: spec.retain ?? '—',
             concurrency: spec.concurrency ?? '—',
@@ -76,8 +60,8 @@ export default {
 
       return groups
         .map((name) => {
-          const hasExistingJobs = this.recurringJobData.some((j) => {
-            const jobGroups = j.spec?.groups || j.groups || [];
+          const hasExistingJobs = this.recurringJobData.some((job) => {
+            const jobGroups = job.spec?.groups || job.groups || [];
 
             return jobGroups.includes(name);
           });
@@ -95,42 +79,41 @@ export default {
       return [
         {
           name: 'name',
-          label: 'Name',
+          labelKey: 'generic.name',
           value: 'name',
           sort: ['name'],
         },
         {
           name: 'task',
-          label: 'Type',
-          value: 'task',
+          labelKey: 'longhorn.recurringJob.table.header.task',
+          value: 'taskDisplay',
         },
         {
           name: 'groups',
-          label: 'Groups',
-          value: 'groups',
+          labelKey: 'longhorn.recurringJob.table.header.groups',
+          value: 'groupsDisplay',
         },
         {
           name: 'cron',
-          label: 'Schedule',
-          value: 'cron',
-          formatter: 'CronSchedule',
+          labelKey: 'longhorn.recurringJob.table.header.schedule',
+          value: 'cronDisplay',
         },
         {
           name: 'labels',
-          label: 'Labels',
+          labelKey: 'longhorn.recurringJob.table.header.labels',
           value: 'labels',
           formatter: 'KeyValue',
         },
         {
           name: 'retain',
-          label: 'Retain',
+          labelKey: 'longhorn.recurringJob.table.header.retain',
           value: 'retain',
           width: 80,
           align: 'center',
         },
         {
           name: 'concurrency',
-          label: 'Concurrency',
+          labelKey: 'longhorn.recurringJob.table.header.concurrency',
           value: 'concurrency',
           width: 80,
           align: 'center',
@@ -142,7 +125,7 @@ export default {
       return [
         {
           name: 'name',
-          label: 'Name',
+          labelKey: 'generic.name',
           value: 'name',
           sort: ['name'],
         },
@@ -156,7 +139,7 @@ export default {
   <div class="recurring-jobs">
     <div class="table-container mb-30">
       <div class="header-row mb-10">
-        <h3>Jobs</h3>
+        <h3>{{ t('longhorn.recurringJob.detail.jobs') }}</h3>
       </div>
       <SortableTable
         :headers="jobHeaders"
@@ -174,21 +157,10 @@ export default {
               <span class="text-name">{{ row.name }}</span>
               <i
                 v-if="row.isAlreadyDeleted"
-                v-clean-tooltip="'Recurring Job configuration not found'"
+                v-clean-tooltip="t('longhorn.recurringJob.detail.jobMissing')"
                 class="icon icon-warning text-error ml-5"
               />
             </div>
-          </td>
-        </template>
-
-        <template #col:groups="{ row }">
-          <td>
-            <template v-if="row.groups && row.groups.length">
-              <span v-for="(group, idx) in row.groups" :key="group">
-                {{ group }}{{ idx < row.groups.length - 1 ? ', ' : '' }}
-              </span>
-            </template>
-            <span v-else class="text-muted">—</span>
           </td>
         </template>
       </SortableTable>
@@ -196,7 +168,7 @@ export default {
 
     <div class="table-container">
       <div class="header-row mb-10">
-        <h3>Groups</h3>
+        <h3>{{ t('longhorn.recurringJob.detail.groups') }}</h3>
       </div>
       <SortableTable
         :headers="groupHeaders"
@@ -216,8 +188,8 @@ export default {
                 v-if="row.isAlreadyDeleted"
                 v-clean-tooltip="
                   row.name === 'default'
-                    ? 'The default group is empty (no jobs assigned)'
-                    : 'Recurring Job Group definition not found'
+                    ? t('longhorn.recurringJob.detail.defaultGroupEmpty')
+                    : t('longhorn.recurringJob.detail.groupMissing')
                 "
                 class="icon icon-warning text-error ml-5"
               />

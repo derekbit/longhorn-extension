@@ -138,10 +138,16 @@ longhorn:
         schedule: Schedule
         retain: Retain
         concurrency: Concurrency
+        parameters: Parameters
         groups: Groups
         labels: Labels
     form:
       forceCreate: Force Create
+      forceCreateTooltip: Create {resource} periodically.
+      key: Key
+      value: Value
+      fullBackupInterval: Full Backup Interval
+      volumeBackupPolicy: Volume Backup Policy
       taskOptions:
         backup: Backup
         snapshot: Snapshot
@@ -150,6 +156,12 @@ longhorn:
         systemBackup: System Backup
         filesystemTrim: Filesystem Trim
       parameters: Parameters
+    detail:
+      jobs: Jobs
+      groups: Groups
+      jobMissing: Recurring Job configuration not found
+      groupMissing: Recurring Job Group definition not found
+      defaultGroupEmpty: The default group is empty (no jobs assigned)
   backupTarget:
     tab:
       basics: Basics
