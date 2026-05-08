@@ -1,5 +1,7 @@
+import { EMPTY_DISPLAY } from '@longhorn/types/display';
+
 export function asNumber(value: unknown): number {
-  return Number(value || 0);
+  return Number(value ?? 0);
 }
 
 export function countMapEntries(map: Record<string, unknown> | null | undefined): number {
@@ -12,10 +14,10 @@ export function sumMapValues(map: Record<string, unknown> | null | undefined): n
 
 export function displayOrDash(value: unknown): string {
   if (value === null || value === undefined) {
-    return '\u2014';
+    return EMPTY_DISPLAY;
   }
 
   const text = String(value).trim();
 
-  return text === '' ? '\u2014' : text;
+  return text === '' ? EMPTY_DISPLAY : text;
 }

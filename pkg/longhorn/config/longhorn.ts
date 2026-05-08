@@ -122,7 +122,11 @@ export function init($plugin: any, store: any) {
   headers(LONGHORN_RESOURCES.BACKING_IMAGE_BACKUPS, BACKING_IMAGE_BACKUPS_HEADER);
 
   // System Backups
-  configureType(LONGHORN_RESOURCES.SYSTEM_BACKUPS, { canYaml: false });
+  configureType(LONGHORN_RESOURCES.SYSTEM_BACKUPS, {
+    isCreatable: true,
+    isEditable: false,
+    canYaml: false,
+  });
   mapType(LONGHORN_RESOURCES.SYSTEM_BACKUPS, LONGHORN_PAGES.SYSTEM_BACKUPS);
   headers(LONGHORN_RESOURCES.SYSTEM_BACKUPS, SYSTEM_BACKUPS_HEADER);
 

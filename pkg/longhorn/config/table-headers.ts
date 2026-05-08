@@ -19,8 +19,10 @@ export const NODES_HEADER = [
     value: 'readiness',
     sort: ['readiness'],
     search: 'readiness',
+    formatter: 'NodeReadiness',
     dashIfEmpty: true,
     width: 140,
+    align: 'center',
   },
   {
     name: 'replicas',
@@ -144,7 +146,7 @@ export const VOLUMES_HEADER = [
     labelKey: 'longhorn.volume.table.header.state',
     value: 'volumeStatus',
     sort: ['volumeStatus.stateDisplay'],
-    search: ['volumeStatus.stateDisplay', 'dashboardStateDisplay'],
+    search: ['volumeStatus.stateDisplay', 'dashboardStateDisplay', 'dashboardStateQueryValue:exact'],
     formatter: 'VolumeHealth',
     width: 120,
   },
@@ -350,6 +352,14 @@ export const BACKUP_VOLUMES_HEADER = [
     formatter: 'LiveDate',
   },
   {
+    name: 'createdAt',
+    label: 'Created At',
+    value: 'status.createdAt',
+    sort: ['status.createdAt'],
+    search: 'status.createdAt',
+    formatter: 'LiveDate',
+  },
+  {
     name: 'pvPvc',
     label: 'PV/PVC',
     value: 'kubernetesStatus',
@@ -378,12 +388,12 @@ export const SYSTEM_BACKUPS_HEADER = [
     dashIfEmpty: true,
   },
   {
-    name: 'lastSyncedAt',
-    labelKey: 'longhorn.systemBackup.table.header.lastSyncedAt',
-    value: '$.status.lastSyncedAt',
-    sort: ['$.status.lastSyncedAt'],
-    search: '$.status.lastSyncedAt',
-    formatter: 'LiveDate',
+    name: 'volumeBackupPolicy',
+    label: 'Volume Backup Policy',
+    value: '$.spec.volumeBackupPolicy',
+    sort: ['$.spec.volumeBackupPolicy'],
+    search: '$.spec.volumeBackupPolicy',
+    dashIfEmpty: true,
   },
   AGE,
 ];
@@ -625,7 +635,23 @@ export const ORPHANS_HEADER = [
 
 export const BACKING_IMAGE_BACKUPS_HEADER = [
   STATE,
-  NAME_COL,
+  {
+    ...NAME_COL,
+    labelKey: 'longhorn.backingImageBackup.table.header.backingImage',
+    value: '$.spec.backingImage',
+    getValue: (row: any) => row?.spec?.backingImage,
+    sort: ['$.spec.backingImage'],
+    search: '$.spec.backingImage',
+    dashIfEmpty: true,
+  },
+  {
+    name: 'backupName',
+    labelKey: 'longhorn.backingImageBackup.table.header.backupName',
+    value: '$.metadata.name',
+    sort: ['$.metadata.name'],
+    search: '$.metadata.name',
+    dashIfEmpty: true,
+  },
   {
     name: 'backupTarget',
     labelKey: 'longhorn.backingImageBackup.table.header.backupTarget',

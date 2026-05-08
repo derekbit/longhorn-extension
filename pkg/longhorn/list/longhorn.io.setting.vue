@@ -42,6 +42,9 @@ export default {
     );
 
     try {
+      // TODO: Require backend changes to move title and description from the RESTful API to the CRD.
+      // Currently fetching settings metadata via REST API proxy to longhorn-frontend.
+      // Once backend supports storing this data in CRD, this API call can be replaced with direct CRD queries.
       const [settingsApi] = await Promise.all([
         this.$store.dispatch(`${this.inStore}/request`, { url: proxyUrl }),
         this.$store.dispatch(`${this.inStore}/findAll`, { type: LONGHORN_RESOURCES.SETTINGS }),
@@ -51,8 +54,8 @@ export default {
         this.settingsApiData = settingsApi.data;
         this.processSettings();
       }
-    } catch (e) {
-      this.loadError = e;
+    } catch (fetchError) {
+      this.loadError = fetchError;
     }
   },
 
@@ -143,9 +146,9 @@ export default {
 
       const settingsResourceMap = new Map();
 
-      this.rows.forEach((r) => {
-        settingsResourceMap.set(r.id, r);
-        if (r.metadata?.name) settingsResourceMap.set(r.metadata.name, r);
+      this.rows.forEach((settingResource) => {
+        settingsResourceMap.set(settingResource.id, settingResource);
+        if (settingResource.metadata?.name) settingsResourceMap.set(settingResource.metadata.name, settingResource);
       });
 
       this.settingsApiData.forEach((setting) => {
@@ -190,16 +193,18 @@ export default {
       });
 
       Object.keys(categoryMap)
-        .sort((a, b) => {
-          // a and b are already lowercase after normalization
-          const aIdx = CATEGORY_ORDER.indexOf(a);
-          const bIdx = CATEGORY_ORDER.indexOf(b);
+        .sort((firstCategoryName, secondCategoryName) => {
+          // Category names are already lowercase after normalization
+          const firstCategoryIndex = CATEGORY_ORDER.indexOf(firstCategoryName);
+          const secondCategoryIndex = CATEGORY_ORDER.indexOf(secondCategoryName);
 
-          if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
-          if (aIdx !== -1) return -1;
-          if (bIdx !== -1) return 1;
+          if (firstCategoryIndex !== -1 && secondCategoryIndex !== -1) {
+            return firstCategoryIndex - secondCategoryIndex;
+          }
+          if (firstCategoryIndex !== -1) return -1;
+          if (secondCategoryIndex !== -1) return 1;
 
-          return a.localeCompare(b);
+          return firstCategoryName.localeCompare(secondCategoryName);
         })
         .forEach((category) => {
           const categoryIndex = CATEGORY_ORDER.indexOf(category);

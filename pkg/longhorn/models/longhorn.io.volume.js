@@ -1,13 +1,15 @@
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 import { VOLUME_STATE } from '@longhorn/types/volume';
+import { getVolumeStateQueryValue } from '@longhorn/utils/volume';
+import { BADGE_COLOR } from '@longhorn/types/badge';
 import { resolveKubernetesStatus } from '@longhorn/utils/json';
 import LonghornModel from './longhorn';
 
 const BADGE = {
-  ERROR: 'bg-error',
-  WARNING: 'bg-warning',
-  SUCCESS: 'bg-success',
-  DISABLED: 'badge-disabled',
+  ERROR: BADGE_COLOR.ERROR,
+  WARNING: BADGE_COLOR.WARNING,
+  SUCCESS: BADGE_COLOR.SUCCESS,
+  DISABLED: BADGE_COLOR.DISABLED,
 };
 
 const STATE_DISPLAY_MAP = {
@@ -25,6 +27,28 @@ const ROBUSTNESS = {
   UNKNOWN: 'unknown',
 };
 
+const VOLUME_ACTION = {
+  ATTACH: 'promptAttach',
+  DETACH: 'detachVolume',
+  ENGINE_UPGRADE: 'engineUpgrade',
+  TRIM_FILESYSTEM: 'trimFilesystem',
+  PV_AND_PVC_CREATE: 'pvAndpvcCreate',
+  BACKEND_PV_CREATE: 'pvCreate',
+  BACKEND_PVC_CREATE: 'pvcCreate',
+};
+
+const MANUAL_ACTION_FILTERS = new Set([
+  VOLUME_ACTION.ENGINE_UPGRADE,
+  VOLUME_ACTION.TRIM_FILESYSTEM,
+  VOLUME_ACTION.BACKEND_PV_CREATE,
+  VOLUME_ACTION.BACKEND_PVC_CREATE,
+]);
+
+const VOLUME_DIALOG = {
+  ATTACH: 'AttachVolumeDialog',
+  CREATE_PV_AND_PVC: 'CreatePVAndPVCDialog',
+};
+
 export default class VolumeModel extends LonghornModel {
   static get STATES() {
     return {
@@ -40,21 +64,101 @@ export default class VolumeModel extends LonghornModel {
     const out = super._availableActions || [];
     const isLocked = this.isStandby || this.isRestoring;
 
-    return out.map((action) => {
-      const cloned = { ...action };
+    // TODO: remove these custom entries once the backend exposes the corresponding
+    // volume actions consistently and the UI can rely on them without hiding items.
+    const custom = [
+      {
+        action: VOLUME_ACTION.ATTACH,
+        label: 'Attach',
+        icon: 'icon-plus',
+        enabled: !this.isRestoring && this.state === VolumeModel.STATES.DETACHED,
+      },
+      {
+        action: VOLUME_ACTION.DETACH,
+        label: 'Detach',
+        icon: 'icon-minus',
+        enabled: this.canDetach,
+      },
+      {
+        action: VOLUME_ACTION.ENGINE_UPGRADE,
+        label: 'Upgrade Engine',
+        icon: 'icon-upgrade-alt',
+        enabled: true,
+      },
+      {
+        action: VOLUME_ACTION.TRIM_FILESYSTEM,
+        label: 'Trim Filesystem',
+        icon: 'icon-file',
+        enabled: true,
+      },
+      {
+        action: VOLUME_ACTION.PV_AND_PVC_CREATE,
+        label: 'Create PV/PVC',
+        icon: 'icon-storage',
+        enabled: true,
+      },
+    ];
 
-      switch (cloned.action) {
-        case 'cloneYaml':
-          cloned.enabled = !isLocked;
-          break;
-        case 'goToEditYaml':
-        case 'goToEdit':
-          if (this.isFaulted) cloned.enabled = false;
-          break;
-      }
+    // TODO: stop filtering these backend actions once the UI can rely on the
+    // backend-provided action list for visibility without losing menu entries.
+    const baseActions = out.filter((action) => !MANUAL_ACTION_FILTERS.has(action.action));
 
-      return cloned;
+    return [
+      ...custom,
+      ...baseActions.map((action) => {
+        const cloned = { ...action };
+
+        switch (cloned.action) {
+          case 'cloneYaml':
+            cloned.enabled = !isLocked;
+            break;
+          case 'salvage':
+            cloned.enabled = !this.isRestoring;
+            break;
+          case 'goToEditYaml':
+          case 'goToEdit':
+            if (this.isFaulted) cloned.enabled = false;
+            break;
+        }
+
+        return cloned;
+      }),
+    ];
+  }
+
+  openVolumeDialog(component) {
+    this.$dispatch('promptModal', {
+      resources: [this],
+      component,
     });
+  }
+
+  promptAttach() {
+    this.openVolumeDialog(VOLUME_DIALOG.ATTACH);
+  }
+
+  detachVolume() {
+    // TODO: implement detach
+    // Use volume API action: this.doAction('detach', { attachmentID, hostId, forceDetach })
+  }
+
+  engineUpgrade() {
+    // TODO: implement engine upgrade
+    // Use volume API action: this.doAction('engineUpgrade', { image })
+  }
+
+  salvage() {
+    // TODO: implement salvage
+    // Use volume API action: this.doAction('salvage', { names })
+  }
+
+  trimFilesystem() {
+    // TODO: implement trim filesystem
+    // Use volume API action: this.doAction('trimFilesystem')
+  }
+
+  pvAndpvcCreate() {
+    this.openVolumeDialog(VOLUME_DIALOG.CREATE_PV_AND_PVC);
   }
 
   get _canEdit() {
@@ -85,6 +189,34 @@ export default class VolumeModel extends LonghornModel {
     return this.status?.restoreStatus?.some((item) => item?.isRestoring) ?? false;
   }
 
+  get canDetach() {
+    if (this.isStandby || this.isRestoring) {
+      return false;
+    }
+
+    if (this.spec?.accessMode === 'rwx') {
+      if (this.spec?.migratable) {
+        return this.state === VolumeModel.STATES.ATTACHED && (this.controllers || []).length <= 1;
+      }
+
+      return this.state === VolumeModel.STATES.ATTACHED && !!this.disableFrontend;
+    }
+
+    return this.state === VolumeModel.STATES.ATTACHED;
+  }
+
+  get canEngineUpgrade() {
+    if (this.isRestoring || this.spec?.dataEngine === 'v2') {
+      return false;
+    }
+
+    if (![VolumeModel.STATES.DETACHED, VolumeModel.STATES.ATTACHED].includes(this.state)) {
+      return false;
+    }
+
+    return true;
+  }
+
   get displayState() {
     const { state, robustness } = this;
     const isStable =
@@ -104,7 +236,9 @@ export default class VolumeModel extends LonghornModel {
       return { ready: false, msg: 'Restoration required.' };
     }
 
-    const scheduledCondition = this.status?.conditions?.find((c) => c.type?.toLowerCase() === 'scheduled');
+    const scheduledCondition = this.status?.conditions?.find(
+      (condition) => condition.type?.toLowerCase() === 'scheduled'
+    );
     const isScheduled = scheduledCondition?.status?.toLowerCase() === 'true';
 
     if (this.state === VolumeModel.STATES.DETACHED && !isScheduled) {
@@ -118,7 +252,7 @@ export default class VolumeModel extends LonghornModel {
     if (this.spec?.dataLocality !== 'best-effort' || !this.isAttached) return false;
     const attachedNodeId = this.status?.currentNodeID || '';
 
-    return (this.status?.replicas || []).every((r) => r.hostID !== attachedNodeId);
+    return (this.status?.replicas || []).every((replica) => replica.hostID !== attachedNodeId);
   }
 
   get stateDescription() {
@@ -145,9 +279,6 @@ export default class VolumeModel extends LonghornModel {
     }
     if (this.isRestoring) {
       return { stateDisplay: 'Restoring', stateBackground: BADGE.WARNING, message: '' };
-    }
-    if (this.isStandby) {
-      return { stateDisplay: 'Standby', stateBackground: BADGE.DISABLED, message: '' };
     }
     if (state === VolumeModel.STATES.ATTACHED) {
       if (robustness === ROBUSTNESS.HEALTHY) {
@@ -185,6 +316,11 @@ export default class VolumeModel extends LonghornModel {
     }
 
     return VOLUME_STATE.IN_PROGRESS;
+  }
+
+  // Legacy longhorn-ui style query value used by dashboard volume status filtering.
+  get dashboardStateQueryValue() {
+    return getVolumeStateQueryValue(this.dashboardStateDisplay);
   }
 
   // Space-delimited host IDs used for simple table filtering by replica location.
@@ -228,18 +364,18 @@ export default class VolumeModel extends LonghornModel {
   }
 
   get currentEngine() {
-    return this.engines.find((e) => e.spec?.volumeName === this.metadata.name) || null;
+    return this.engines.find((engine) => engine.spec?.volumeName === this.metadata.name) || null;
   }
 
   get volumeAttachments() {
     if (!this.inStore) return [];
 
     return (this.$rootGetters[`${this.inStore}/all`](LONGHORN_RESOURCES.VOLUME_ATTACHMENTS) || []).filter(
-      (va) => va.volumeName === this.metadata.name
+      (volumeAttachment) => volumeAttachment.volumeName === this.metadata.name
     );
   }
 
   get attachmentRows() {
-    return this.volumeAttachments.flatMap((va) => va.ticketRows || []);
+    return this.volumeAttachments.flatMap((volumeAttachment) => volumeAttachment.ticketRows || []);
   }
 }

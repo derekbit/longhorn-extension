@@ -1,6 +1,6 @@
 import { PRODUCT_NAME } from '@longhorn/types/longhorn';
 
-export function getBasePath(router, clusterId) {
+export function getBasePath(router: any, clusterId: string): string {
   if (!router || !clusterId) {
     return '';
   }
@@ -14,7 +14,7 @@ export function getBasePath(router, clusterId) {
 
       return basePath;
     }
-  } catch (e) {
+  } catch {
     // Route not found
   }
 

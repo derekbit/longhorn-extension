@@ -40,7 +40,12 @@ export default {
     },
 
     isEncrypted() {
-      return !!(this.row.spec?.secret || this.row.spec?.secretNamespace);
+      return !!(
+        this.row.spec?.sourceParameters?.secret ||
+        this.row.spec?.sourceParameters?.['secret-namespace'] ||
+        this.row.spec?.secret ||
+        this.row.spec?.secretNamespace
+      );
     },
 
     isUnavailable() {

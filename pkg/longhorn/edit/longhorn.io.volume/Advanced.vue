@@ -51,36 +51,49 @@ export default {
       return this.value.spec?.dataEngine === 'v2';
     },
 
-    unitOptions: () => [
-      { label: MiB_UNIT, value: MiB_UNIT },
-      { label: GiB_UNIT, value: GiB_UNIT },
-    ],
+    unitOptions() {
+      return [
+        { label: MiB_UNIT, value: MiB_UNIT },
+        { label: GiB_UNIT, value: GiB_UNIT },
+      ];
+    },
 
-    standardToggleOptions: () => [
-      { label: 'ignored (follow the global setting)', value: 'ignored' },
-      { label: 'enabled', value: 'enabled' },
-      { label: 'disabled', value: 'disabled' },
-    ],
+    standardToggleOptions() {
+      return [
+        { label: this.t('longhorn.volume.options.global.ignored'), value: 'ignored' },
+        { label: this.t('longhorn.volume.options.global.enabled'), value: 'enabled' },
+        { label: this.t('longhorn.volume.options.global.disabled'), value: 'disabled' },
+      ];
+    },
 
-    replicaAutoBalanceOptions: () => [
-      { label: 'ignored (follow the global setting)', value: 'ignored' },
-      { label: 'disabled', value: 'disabled' },
-      { label: 'least-effort', value: 'least-effort' },
-      { label: 'best-effort', value: 'best-effort' },
-    ],
+    replicaAutoBalanceOptions() {
+      return [
+        { label: this.t('longhorn.volume.options.global.ignored'), value: 'ignored' },
+        { label: this.t('longhorn.volume.options.global.disabled'), value: 'disabled' },
+        { label: this.t('longhorn.volume.options.replicaAutoBalance.leastEffort'), value: 'least-effort' },
+        { label: this.t('longhorn.volume.options.replicaAutoBalance.bestEffort'), value: 'best-effort' },
+      ];
+    },
 
-    dataIntegrityOptions: () => [
-      { label: 'ignored (follow the global setting)', value: 'ignored' },
-      { label: 'disabled', value: 'disabled' },
-      { label: 'enabled', value: 'enabled' },
-      { label: 'fast-check', value: 'fast-check' },
-    ],
+    dataIntegrityOptions() {
+      return [
+        { label: this.t('longhorn.volume.options.global.ignored'), value: 'ignored' },
+        { label: this.t('longhorn.volume.options.global.disabled'), value: 'disabled' },
+        { label: this.t('longhorn.volume.options.global.enabled'), value: 'enabled' },
+        { label: this.t('longhorn.volume.options.dataIntegrity.fastCheck'), value: 'fast-check' },
+      ];
+    },
 
-    backupBlockSizeOptions: () => [
-      { label: 'ignored (follow the global setting)', value: '0' },
-      { label: '2 Mi', value: '2097152' },
-      { label: '16 Mi', value: '16777216' },
-    ],
+    backupBlockSizeOptions() {
+      return [
+        { label: this.t('longhorn.backupVolume.dialog.restoreBackup.options.backupBlockSize.ignored'), value: '0' },
+        { label: this.t('longhorn.backupVolume.dialog.restoreBackup.options.backupBlockSize.twoMi'), value: '2097152' },
+        {
+          label: this.t('longhorn.backupVolume.dialog.restoreBackup.options.backupBlockSize.sixteenMi'),
+          value: '16777216',
+        },
+      ];
+    },
   },
 
   watch: {
@@ -132,14 +145,14 @@ export default {
 
 <template>
   <div>
-    <h3>Snapshot Policy</h3>
+    <h3>{{ t('longhorn.volume.advanced.section.snapshotPolicy') }}</h3>
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
           v-model:value.number="value.spec.snapshotMaxCount"
           type="number"
-          label="Snapshot Max Count"
-          tooltip="Set '0' to inherit global settings"
+          :label="t('longhorn.volume.advanced.fields.snapshotMaxCount')"
+          :tooltip="t('longhorn.volume.advanced.tooltip.inheritGlobalWithZero')"
           :mode="mode"
           :rules="getRules('spec.snapshotMaxCount')"
           :disabled="fieldDisabledStatus.snapshotMaxCount"
@@ -148,7 +161,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model:value="value.spec.unmapMarkSnapChainRemoved"
-          label="Allow Snapshot Removal During Trim"
+          :label="t('longhorn.volume.advanced.fields.allowSnapshotRemovalDuringTrim')"
           :options="standardToggleOptions"
           :mode="mode"
         />
@@ -160,14 +173,14 @@ export default {
           <LabeledInput
             v-model:value.number="snapshotMaxSizeRaw"
             type="number"
-            label="Snapshot Max Size"
-            tooltip="Set '0' for unrestricted size"
+            :label="t('longhorn.volume.advanced.fields.snapshotMaxSize')"
+            :tooltip="t('longhorn.volume.advanced.tooltip.unrestrictedWithZero')"
             :mode="mode"
             class="size-input"
           />
           <LabeledSelect
             v-model:value="snapshotMaxSizeUnit"
-            label="Unit"
+            :label="t('longhorn.volume.form.unit')"
             :options="unitOptions"
             :mode="mode"
             class="unit-select"
@@ -178,12 +191,12 @@ export default {
 
     <div class="spacer" />
 
-    <h3>Data Integrity & Reliability</h3>
+    <h3>{{ t('longhorn.volume.advanced.section.dataIntegrityAndReliability') }}</h3>
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect
           v-model:value="value.spec.snapshotDataIntegrity"
-          label="Snapshot Data Integrity"
+          :label="t('longhorn.volume.advanced.fields.snapshotDataIntegrity')"
           :options="dataIntegrityOptions"
           :mode="mode"
         />
@@ -191,7 +204,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model:value="value.spec.freezeFilesystemForSnapshot"
-          label="Freeze Filesystem For Snapshot"
+          :label="t('longhorn.volume.advanced.fields.freezeFilesystemForSnapshot')"
           :options="standardToggleOptions"
           :mode="mode"
         />
@@ -201,8 +214,8 @@ export default {
       <div class="col span-6 pt-10">
         <Checkbox
           v-model:value="value.spec.revisionCounterDisabled"
-          label="Disable Revision Counter"
-          tooltip="Disabling may improve performance but increases risk of data inconsistency after crashes"
+          :label="t('longhorn.volume.advanced.fields.disableRevisionCounter')"
+          :tooltip="t('longhorn.volume.advanced.tooltip.revisionCounterDisabled')"
           :mode="mode"
         />
       </div>
@@ -210,12 +223,12 @@ export default {
 
     <div class="spacer" />
 
-    <h3>Replica Scheduling & Affinity</h3>
+    <h3>{{ t('longhorn.volume.advanced.section.replicaSchedulingAndAffinity') }}</h3>
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect
           v-model:value="value.spec.replicaAutoBalance"
-          label="Replicas Auto Balance"
+          :label="t('longhorn.volume.advanced.fields.replicasAutoBalance')"
           :options="replicaAutoBalanceOptions"
           :mode="mode"
           :disabled="fieldDisabledStatus.replicaAutoBalance"
@@ -224,7 +237,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model:value="value.spec.offlineRebuilding"
-          label="Offline Replica Rebuilding"
+          :label="t('longhorn.volume.advanced.fields.offlineReplicaRebuilding')"
           :options="standardToggleOptions"
           :mode="mode"
         />
@@ -234,7 +247,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model:value="value.spec.replicaSoftAntiAffinity"
-          label="Replica Soft Anti Affinity"
+          :label="t('longhorn.volume.advanced.fields.replicaSoftAntiAffinity')"
           :options="standardToggleOptions"
           :mode="mode"
         />
@@ -242,7 +255,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model:value="value.spec.replicaZoneSoftAntiAffinity"
-          label="Replica Zone Soft Anti Affinity"
+          :label="t('longhorn.volume.advanced.fields.replicaZoneSoftAntiAffinity')"
           :options="standardToggleOptions"
           :mode="mode"
         />
@@ -252,7 +265,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model:value="value.spec.replicaDiskSoftAntiAffinity"
-          label="Replica Disk Soft Anti Affinity"
+          :label="t('longhorn.volume.advanced.fields.replicaDiskSoftAntiAffinity')"
           :options="standardToggleOptions"
           :mode="mode"
         />
@@ -261,12 +274,12 @@ export default {
 
     <div class="spacer" />
 
-    <h3>Engine Optimization</h3>
+    <h3>{{ t('longhorn.volume.advanced.section.engineOptimization') }}</h3>
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect
           v-model:value="value.spec.backupBlockSize"
-          label="Backup Block Size"
+          :label="t('longhorn.volume.advanced.fields.backupBlockSize')"
           :options="backupBlockSizeOptions"
           :mode="mode"
           :disabled="mode !== _CREATE"
@@ -277,8 +290,8 @@ export default {
         <LabeledInput
           v-model:value.number="value.spec.replicaRebuildingBandwidthLimit"
           type="number"
-          label="Replica Rebuilding Bandwidth Limit"
-          tooltip="Set '0' to inherit global settings"
+          :label="t('longhorn.volume.advanced.fields.replicaRebuildingBandwidthLimit')"
+          :tooltip="t('longhorn.volume.advanced.tooltip.inheritGlobalWithZero')"
           :mode="mode"
           :rules="getRules('spec.replicaRebuildingBandwidthLimit')"
           :disabled="fieldDisabledStatus.replicaRebuildingBandwidthLimit"

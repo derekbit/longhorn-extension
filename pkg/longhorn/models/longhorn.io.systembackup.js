@@ -2,19 +2,15 @@ import LonghornModel from './longhorn';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
 
 export default class SystemBackupModel extends LonghornModel {
-  // State mapping specific to SystemBackup
-  static get STATE_MAP() {
-    return {
-      active: { display: 'Completed', background: 'bg-success' },
-      error: { display: 'Error', background: 'bg-error' },
-      transitioning: { display: 'In Progress', background: 'bg-warning' },
-    };
-  }
-
   get availableActions() {
-    const out = super._availableActions;
-    const forbiddenActions = [AVAILABLE_ACTIONS.CLONE_YAML, AVAILABLE_ACTIONS.EDIT_YAML];
-    const filtered = out.filter((item) => !forbiddenActions.includes(item.action));
+    const availableActions = super._availableActions;
+    const forbiddenActions = [
+      AVAILABLE_ACTIONS.EDIT,
+      AVAILABLE_ACTIONS.CLONE,
+      AVAILABLE_ACTIONS.CLONE_YAML,
+      AVAILABLE_ACTIONS.EDIT_YAML,
+    ];
+    const filtered = availableActions.filter((item) => !forbiddenActions.includes(item.action));
     const firstDividerIndex = filtered.findIndex((item) => item.divider);
 
     const restoreAction = {
@@ -25,9 +21,9 @@ export default class SystemBackupModel extends LonghornModel {
     };
 
     if (firstDividerIndex !== -1) {
-      filtered.splice(firstDividerIndex + 1, 0, restoreAction);
+      filtered.splice(firstDividerIndex, 0, restoreAction);
     } else {
-      filtered.push(restoreAction);
+      filtered.unshift(restoreAction);
     }
 
     return filtered;
@@ -43,43 +39,57 @@ export default class SystemBackupModel extends LonghornModel {
   get _errorMessage() {
     const statusError = this.getStatusErrorMessage(() => (this.status?.state || '').toLowerCase() === 'error');
 
-    return statusError || this.findConditionMessage((c) => c.type === 'Error' && c.status === 'True');
+    return (
+      statusError || this.findConditionMessage((condition) => condition.type === 'Error' && condition.status === 'True')
+    );
   }
 
   get state() {
     if (this._errorMessage) return 'error';
 
-    const s = (this.status?.state || '').toLowerCase();
+    const currentState = (this.status?.state || '').toLowerCase();
 
-    if (s === 'completed') return 'active';
-    if (s === 'error') return 'error';
-    if (['uploading', 'generating', 'backingup'].includes(s)) return 'transitioning';
+    // Only define final states, everything else is transitioning
+    if (currentState === 'completed' || currentState === 'ready') return 'active';
+    if (currentState === 'error') return 'error';
+    if (!currentState) return 'unknown';
 
-    return this.metadata?.state?.name || 'unknown';
+    // All other non-empty states are transitioning
+    return 'transitioning';
   }
 
   get stateDescription() {
     return this._errorMessage;
   }
 
+  /**
+   * Convert state name from PascalCase/camelCase to human-readable format
+   * e.g., "CreatingVolumeBackups" -> "Creating Volume Backups"
+   */
+  formatStateName(stateName) {
+    if (!stateName) return '';
+
+    // Insert space before capital letters and uppercase first letter
+    return stateName
+      .replace(/([A-Z])/g, ' $1')
+      .trim()
+      .replace(/^./, (str) => str.toUpperCase());
+  }
+
   get stateDisplay() {
     const state = this.state;
-    const stateMap = {
-      active: 'Completed',
-      error: 'Error',
-      transitioning: 'In Progress',
-    };
+    const rawState = this.status?.state || '';
 
-    return stateMap[state] || state?.charAt(0).toUpperCase() + state?.slice(1) || 'Unknown';
+    if (state === 'active') return 'Completed';
+    if (state === 'error') return 'Error';
+    if (state === 'unknown') return 'Unknown';
+
+    // For transitioning state, use the raw state name with auto-formatting
+    return this.formatStateName(rawState);
   }
 
   get stateBackground() {
-    const state = this.state;
-
-    if (state === 'error') return 'bg-error';
-    if (state === 'transitioning') return 'bg-warning';
-
-    return 'bg-success';
+    return this.getBackgroundForState(this.state);
   }
 
   get stateObj() {

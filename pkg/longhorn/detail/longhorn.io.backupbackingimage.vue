@@ -4,6 +4,8 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import LabelValue from '@shell/components/LabelValue';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
+import LiveDate from '@shell/components/formatter/LiveDate';
+import { formatSi } from '@shell/utils/units';
 import { _VIEW } from '@shell/config/query-params';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
 
@@ -19,32 +21,16 @@ const props = defineProps({
   },
 });
 
-const progressDisplay = computed(() => {
-  const progress = props.value?.status?.progress;
-  const state = props.value?.status?.state;
-
-  if (progress !== undefined && progress !== null && ['InProgress', 'Syncing'].includes(state)) {
-    return `${progress}%`;
-  }
-
-  return displayValue(progress);
-});
-
 const sizeDisplay = computed(() => {
   const size = props.value?.status?.size;
 
-  if (!size || size === 0) return '—';
+  if (!size) return '—';
 
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let unitIndex = 0;
-  let value = size;
-
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex++;
-  }
-
-  return `${value.toFixed(2)} ${units[unitIndex]}`;
+  return formatSi(size, {
+    suffix: 'iB',
+    firstSuffix: 'B',
+    increment: 1024,
+  });
 });
 
 function displayValue(val) {
@@ -68,32 +54,28 @@ function displayValue(val) {
     <Tabbed side-tabs :resource="value">
       <Tab name="basics" :label="t('longhorn.backingImageBackup.tab.basics')">
         <LabelValue
+          class="mb-20"
           :name="t('longhorn.backingImageBackup.table.header.backingImage')"
-          :value="displayValue(value?.status?.backingImage)"
+          :value="displayValue(value?.spec?.backingImage)"
         />
         <LabelValue
+          class="mb-20"
           :name="t('longhorn.backingImageBackup.table.header.backupTarget')"
           :value="displayValue(value?.spec?.backupTargetName)"
         />
+        <LabelValue class="mb-20" :name="t('longhorn.backingImageBackup.table.header.size')" :value="sizeDisplay" />
         <LabelValue
-          :name="t('longhorn.backingImageBackup.table.header.state')"
-          :value="displayValue(value?.status?.state)"
-        />
-        <LabelValue :name="t('longhorn.backingImageBackup.table.header.size')" :value="sizeDisplay" />
-        <LabelValue
-          v-if="value?.status?.progress !== undefined"
-          :name="t('longhorn.backingImageBackup.table.header.progress')"
-          :value="progressDisplay"
-        />
-        <LabelValue
+          class="mb-20"
           :name="t('longhorn.backingImageBackup.table.header.url')"
           :value="displayValue(value?.status?.url)"
         />
-        <LabelValue
-          :name="t('longhorn.backingImageBackup.table.header.lastSyncedAt')"
-          :value="displayValue(value?.status?.lastSyncedAt)"
-        />
-        <LabelValue :name="t('longhorn.backingImageBackup.table.header.checksum')">
+        <LabelValue class="mb-20" :name="t('longhorn.backingImageBackup.table.header.lastSyncedAt')">
+          <template #value>
+            <LiveDate v-if="value?.status?.lastSyncedAt" :value="value.status.lastSyncedAt" />
+            <span v-else>—</span>
+          </template>
+        </LabelValue>
+        <LabelValue class="mb-20" :name="t('longhorn.backingImageBackup.table.header.checksum')">
           <template #value>
             <span class="checksum-text">{{ displayValue(value?.status?.checksum) }}</span>
           </template>
@@ -104,9 +86,6 @@ function displayValue(val) {
 </template>
 
 <style lang="scss" scoped>
-.label {
-  margin-bottom: 20px;
-}
 .checksum-text {
   word-break: break-all;
 }

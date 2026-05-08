@@ -10,6 +10,7 @@ import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import { _CREATE } from '@shell/config/query-params';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
+import { VOLUME_CREATE_SPEC_DEFAULTS, VOLUME_DEFAULT_SNAPSHOT_MAX_COUNT } from '@longhorn/types/volume';
 import { set } from '@shell/utils/object';
 import Basics from './Basics';
 import Advanced from './Advanced';
@@ -46,7 +47,10 @@ export default {
       fvFormRuleSets: [
         { path: 'spec.size', rules: ['required', 'isInteger', 'minValue:1'] },
         { path: 'spec.numberOfReplicas', rules: ['required', 'isInteger', 'minValue:1', 'maxValue:10'] },
-        { path: 'spec.snapshotMaxCount', rules: ['strictRequired', 'isInteger', 'minValue:0', 'maxValue:250'] },
+        {
+          path: 'spec.snapshotMaxCount',
+          rules: ['strictRequired', 'isInteger', 'minValue:0', `maxValue:${VOLUME_DEFAULT_SNAPSHOT_MAX_COUNT}`],
+        },
         { path: 'spec.replicaRebuildingBandwidthLimit', rules: ['strictRequired', 'isInteger', 'minValue:0'] },
       ],
     };
@@ -54,12 +58,14 @@ export default {
 
   computed: {
     fvExtraRules() {
-      const t = this.$store.getters['i18n/t'];
-      const rulesGenerator = formRulesGenerator(t, { displayKey: 'Value' });
+      const translate = this.$store.getters['i18n/t'];
+      const rulesGenerator = formRulesGenerator(translate, { displayKey: 'Value' });
       const extra = {};
 
       const strictRequired = (val) =>
-        val === undefined || val === null || val === '' ? t('validation.required', { key: 'Value' }) : undefined;
+        val === undefined || val === null || val === ''
+          ? translate('validation.required', { key: 'Value' })
+          : undefined;
 
       this.fvFormRuleSets.forEach((set) => {
         set.rules.forEach((rule) => {
@@ -163,36 +169,7 @@ export default {
       const spec = this.value.spec;
 
       if (this.mode === _CREATE) {
-        const defaults = {
-          size: String(20 * 1024 ** 3),
-          numberOfReplicas: 3,
-          dataEngine: 'v1',
-          frontend: 'blockdev',
-          dataLocality: 'disabled',
-          accessMode: 'rwo',
-          encrypted: false,
-          dataSource: '',
-          dataSourceVolume: '',
-          dataSourceSnapshot: '',
-          backupTargetName: '',
-          ublkQueueDepth: 128,
-          ublkNumberOfQueue: 1,
-          snapshotDataIntegrity: 'ignored',
-          replicaAutoBalance: 'ignored',
-          unmapMarkSnapChainRemoved: 'ignored',
-          replicaSoftAntiAffinity: 'ignored',
-          replicaZoneSoftAntiAffinity: 'ignored',
-          replicaDiskSoftAntiAffinity: 'ignored',
-          freezeFilesystemForSnapshot: 'ignored',
-          offlineRebuilding: 'ignored',
-          snapshotMaxCount: 0,
-          snapshotMaxSize: '0',
-          backupBlockSize: '0',
-          replicaRebuildingBandwidthLimit: 0,
-          revisionCounterDisabled: false,
-        };
-
-        Object.entries(defaults).forEach(([key, val]) => {
+        Object.entries(VOLUME_CREATE_SPEC_DEFAULTS).forEach(([key, val]) => {
           if (spec[key] === undefined) {
             set(spec, key, val);
           }
@@ -204,7 +181,7 @@ export default {
       this.errors = [];
 
       if (!this.isFormCurrentlyValid) {
-        this.fvFormRuleSets.forEach((r) => this.fvGetAndReportPathRules(r.path));
+        this.fvFormRuleSets.forEach((ruleSet) => this.fvGetAndReportPathRules(ruleSet.path));
         buttonDone(false);
 
         return;

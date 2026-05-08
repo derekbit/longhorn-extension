@@ -12,5 +12,31 @@ module.exports = () => {
     config.resolve.alias['@longhorn'] = path.resolve(__dirname);
   };
 
-  return Object.assign({}, vendorConfig, { configureWebpack: customConfigureWebpack });
+  const vendorChainWebpack = vendorConfig.chainWebpack;
+  const customChainWebpack = (webpackConfig) => {
+    if (typeof vendorChainWebpack === 'function') {
+      vendorChainWebpack(webpackConfig);
+    }
+
+    if (webpackConfig.plugins.has('fork-ts-checker')) {
+      webpackConfig.plugin('fork-ts-checker').tap((args) => {
+        const [forkCheckerOptions = {}] = args;
+
+        return [
+          {
+            ...forkCheckerOptions,
+            typescript: {
+              ...(forkCheckerOptions.typescript || {}),
+              typescriptPath: require.resolve('typescript'),
+            },
+          },
+        ];
+      });
+    }
+  };
+
+  return Object.assign({}, vendorConfig, {
+    configureWebpack: customConfigureWebpack,
+    chainWebpack: customChainWebpack,
+  });
 };

@@ -50,7 +50,17 @@ jobs:
 
       - name: Build Helm charts
         run: |
-          yarn publish-pkgs -s ${{ github.repository }} -b gh-pages-dev -t longhorn-${{ needs.extract-version.outputs.version }}
+          set -euo pipefail
+
+          VERSION="${{ needs.extract-version.outputs.version }}"
+
+          yarn build-pkg longhorn
+          yarn publish-pkgs -n -s ${{ github.repository }} -b gh-pages-dev -t longhorn-${VERSION}
+
+          # Guard against silent success from upstream publish script internals.
+          test -f "tmp/assets/longhorn/longhorn-${VERSION}.tgz"
+          test -f "tmp/charts/longhorn/${VERSION}/Chart.yaml"
+          test -d "tmp/extensions/longhorn/${VERSION}/plugin"
 
       - name: Upload charts artifact
         uses: actions/upload-artifact@v4

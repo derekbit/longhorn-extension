@@ -33,10 +33,16 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Build package
-        run: yarn build-pkg
+        run: |
+          set -euo pipefail
+          yarn build-pkg longhorn
+
+          VERSION=$(jq -r '.version' pkg/longhorn/package.json)
+          test -d "dist-pkg/longhorn-${VERSION}"
+          test -f "dist-pkg/longhorn-${VERSION}/longhorn-${VERSION}.umd.min.js"
 
       - name: Publish to GitHub Pages
         if: github.event_name == 'release'

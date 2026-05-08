@@ -3,7 +3,7 @@ import { Card } from '@components/Card';
 import SortableTable from '@shell/components/SortableTable';
 import { BadgeState } from '@components/BadgeState';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
-import { getReplicaNodeStatus } from '@longhorn/utils/replica-status';
+import { getReplicaNodeStatus } from '@longhorn/utils/replica';
 
 export default {
   name: 'NodeReplicasList',

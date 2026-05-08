@@ -4,15 +4,12 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import { set } from '@shell/utils/object';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
+import { VOLUME_SOURCE_TYPE, DATA_ENGINE_V1, DATA_ENGINE_V2 } from '@longhorn/types/volume';
+import { buildVolumeDataSource, parseVolumeDataSource, getFrontendOptions } from '@longhorn/utils/volume';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { GiB_UNIT, MiB_UNIT } from '@longhorn/types/units';
 import { _CREATE } from '@shell/config/query-params';
-
-const DATA_ENGINE_V1 = 'v1';
-const DATA_ENGINE_V2 = 'v2';
-const SOURCE_TYPE_VOLUME = 'volume';
-const SOURCE_TYPE_SNAPSHOT = 'snapshot';
 
 export default {
   name: 'VolumeBasics',
@@ -61,18 +58,22 @@ export default {
     },
 
     isSizeDisabled() {
-      const isCloning = [SOURCE_TYPE_VOLUME, SOURCE_TYPE_SNAPSHOT].includes(this.localSourceType);
+      const isCloning = [VOLUME_SOURCE_TYPE.VOLUME, VOLUME_SOURCE_TYPE.SNAPSHOT].includes(this.localSourceType);
 
       return isCloning && !!this.value.spec.dataSourceVolume;
     },
 
-    unitOptions: () => [
-      { label: MiB_UNIT, value: MiB_UNIT },
-      { label: GiB_UNIT, value: GiB_UNIT },
-    ],
+    unitOptions() {
+      return [
+        { label: MiB_UNIT, value: MiB_UNIT },
+        { label: GiB_UNIT, value: GiB_UNIT },
+      ];
+    },
 
     backupTargetOptions() {
-      const availableTargets = this.allBackupTargetsRaw.filter((t) => t.status?.available !== false);
+      const availableTargets = this.allBackupTargetsRaw.filter(
+        (backupTargetResource) => backupTargetResource.status?.available !== false
+      );
 
       return this.mapToOptions(availableTargets, true);
     },
@@ -80,94 +81,122 @@ export default {
     dataEngineOptions() {
       const options = [];
 
-      if (this.v1EngineEnabled) options.push({ label: 'V1', value: DATA_ENGINE_V1 });
-      if (this.v2EngineEnabled) options.push({ label: 'V2', value: DATA_ENGINE_V2 });
+      if (this.v1EngineEnabled) {
+        options.push({ label: this.t('longhorn.volume.options.dataEngine.v1'), value: DATA_ENGINE_V1 });
+      }
+      if (this.v2EngineEnabled) {
+        options.push({ label: this.t('longhorn.volume.options.dataEngine.v2'), value: DATA_ENGINE_V2 });
+      }
 
       return options;
     },
 
-    dataSourceOptions: () => [
-      { label: 'None', value: '' },
-      { label: 'Volume', value: SOURCE_TYPE_VOLUME },
-      { label: 'Volume Snapshot', value: SOURCE_TYPE_SNAPSHOT },
-    ],
+    dataSourceOptions() {
+      return [
+        { label: this.t('longhorn.volume.options.dataSource.none'), value: '' },
+        { label: this.t('longhorn.volume.options.dataSource.volume'), value: VOLUME_SOURCE_TYPE.VOLUME },
+        { label: this.t('longhorn.volume.options.dataSource.volumeSnapshot'), value: VOLUME_SOURCE_TYPE.SNAPSHOT },
+      ];
+    },
 
     filteredVolumeOptions() {
       const engine = this.value?.spec?.dataEngine;
-      const volumes = engine ? this.allVolumesRaw.filter((v) => v.spec?.dataEngine === engine) : this.allVolumesRaw;
+      const volumes = engine
+        ? this.allVolumesRaw.filter((volumeResource) => volumeResource.spec?.dataEngine === engine)
+        : this.allVolumesRaw;
 
       return this.mapToOptions(volumes, true);
     },
 
     filteredBackingImageOptions() {
       const engine = this.value?.spec?.dataEngine;
-      const bis = engine
-        ? this.allBackingImagesRaw.filter((bi) => !bi.spec?.dataEngine || bi.spec?.dataEngine === engine)
+      const backingImageResources = engine
+        ? this.allBackingImagesRaw.filter(
+            (backingImageResource) =>
+              !backingImageResource.spec?.dataEngine || backingImageResource.spec?.dataEngine === engine
+          )
         : this.allBackingImagesRaw;
 
-      return this.mapToOptions(bis, true);
+      return this.mapToOptions(backingImageResources, true);
     },
 
     filteredSnapshotOptions() {
       const selectedVol = this.value.spec.dataSourceVolume;
 
-      if (!selectedVol) return [{ label: 'None', value: '' }];
+      if (!selectedVol) return [{ label: this.t('longhorn.volume.options.dataSource.none'), value: '' }];
 
       return this.allSnapshotsRaw
-        .filter((s) => [s.spec?.volume, s.status?.volume, s.volume].includes(selectedVol))
-        .map((s) => {
-          const time = s.status?.creationTime || s.creationTime || s.metadata?.creationTimestamp;
+        .filter((snapshotResource) =>
+          [snapshotResource.spec?.volume, snapshotResource.status?.volume, snapshotResource.volume].includes(
+            selectedVol
+          )
+        )
+        .map((snapshotResource) => {
+          const time =
+            snapshotResource.status?.creationTime ||
+            snapshotResource.creationTime ||
+            snapshotResource.metadata?.creationTimestamp;
           const formattedDate = time ? dayjs(time).format('YYYY-MM-DD HH:mm:ss') : '';
 
           return {
-            label: `${s.name || s.id} (created ${formattedDate})`,
-            value: s.name || s.id,
+            label: this.t('longhorn.volume.options.snapshot.createdLabel', {
+              name: snapshotResource.name || snapshotResource.id,
+              createdAt: formattedDate,
+            }),
+            value: snapshotResource.name || snapshotResource.id,
             time: dayjs(time || 0).valueOf(),
           };
         })
-        .sort((a, b) => b.time - a.time)
-        .concat([{ label: 'None', value: '' }])
+        .sort((firstSnapshot, secondSnapshot) => secondSnapshot.time - firstSnapshot.time)
+        .concat([{ label: this.t('longhorn.volume.options.dataSource.none'), value: '' }])
         .reverse();
     },
 
     frontendOptions() {
-      return this.value.spec?.dataEngine === DATA_ENGINE_V2
-        ? [
-            { label: 'Block Device', value: 'blockdev' },
-            { label: 'NVMf', value: 'nvmf' },
-            { label: 'UBLK', value: 'ublk' },
-          ]
-        : [
-            { label: 'Block Device', value: 'blockdev' },
-            { label: 'ISCSI', value: 'iscsi' },
-          ];
+      const selectedDataEngine = this.value.spec?.dataEngine;
+      const frontendOptions = getFrontendOptions(this.t);
+
+      return frontendOptions
+        .filter((frontend) => frontend.dataEngine.includes(selectedDataEngine))
+        .map((frontend) => ({
+          label: frontend.label,
+          value: frontend.value,
+        }));
     },
 
     nodeTagOptions() {
-      const tags = [...new Set(this.allNodesRaw.flatMap((n) => n.spec?.tags || []))];
+      const tags = [...new Set(this.allNodesRaw.flatMap((nodeResource) => nodeResource.spec?.tags || []))];
 
-      return tags.map((t) => ({ label: t, value: t }));
+      return tags.map((tag) => ({ label: tag, value: tag }));
     },
 
     diskTagOptions() {
       const tags = [
-        ...new Set(this.allNodesRaw.flatMap((n) => Object.values(n.spec?.disks || {}).flatMap((d) => d.tags || []))),
+        ...new Set(
+          this.allNodesRaw.flatMap((nodeResource) =>
+            Object.values(nodeResource.spec?.disks || {}).flatMap((disk) => disk.tags || [])
+          )
+        ),
       ];
 
-      return tags.map((t) => ({ label: t, value: t }));
+      return tags.map((tag) => ({ label: tag, value: tag }));
     },
 
-    dataLocalityOptions: () => [
-      { label: 'Disabled', value: 'disabled' },
-      { label: 'Best Effort', value: 'best-effort' },
-      { label: 'Strict Local', value: 'strict-local' },
-    ],
+    dataLocalityOptions() {
+      return [
+        { label: this.t('longhorn.volume.options.dataLocality.disabled'), value: 'disabled' },
+        { label: this.t('longhorn.volume.options.dataLocality.bestEffort'), value: 'best-effort' },
+        { label: this.t('longhorn.volume.options.dataLocality.strictLocal'), value: 'strict-local' },
+      ];
+    },
 
-    accessModeOptions: () => [
-      { label: 'ReadWriteOnce', value: 'rwo' },
-      { label: 'ReadWriteOncePod', value: 'rwop' },
-      { label: 'ReadWriteMany', value: 'rwx' },
-    ],
+    accessModeOptions() {
+      return [
+        { label: this.t('longhorn.backupVolume.dialog.restoreBackup.options.accessMode.rwo'), value: 'rwo' },
+        { label: this.t('longhorn.backupVolume.dialog.restoreBackup.options.accessMode.rwop'), value: 'rwop' },
+        { label: this.t('longhorn.backupVolume.dialog.restoreBackup.options.accessMode.rwx'), value: 'rwx' },
+      ];
+    },
   },
 
   watch: {
@@ -183,19 +212,21 @@ export default {
       this.syncDataSourceString();
     },
 
-    async 'value.spec.dataSourceVolume'(newVol) {
+    async 'value.spec.dataSourceVolume'(newVolumeName) {
       set(this.value.spec, 'dataSourceSnapshot', '');
       this.syncDataSourceString();
-      if (!newVol) {
+      if (!newVolumeName) {
         this.allSnapshotsRaw = [];
 
         return;
       }
-      if (this.localSourceType === SOURCE_TYPE_SNAPSHOT) await this.loadSnapshots();
+      if (this.localSourceType === VOLUME_SOURCE_TYPE.SNAPSHOT) await this.loadSnapshots();
 
-      const volRes = this.allVolumesRaw.find((v) => (v.name || v.metadata?.name) === newVol);
+      const selectedVolumeResource = this.allVolumesRaw.find(
+        (volumeResource) => (volumeResource.name || volumeResource.metadata?.name) === newVolumeName
+      );
 
-      if (volRes) this.setSizeFromResource(volRes);
+      if (selectedVolumeResource) this.setSizeFromResource(selectedVolumeResource);
     },
 
     'value.spec.dataSourceSnapshot': 'syncDataSourceString',
@@ -203,13 +234,13 @@ export default {
     'value.spec.dataEngine'(newEngine) {
       if (this.mode === 'create') this.updateDefaultReplicaCount(newEngine);
 
-      if (!this.frontendOptions.some((o) => o.value === this.value.spec.frontend)) {
-        set(this.value.spec, 'frontend', 'blockdev');
+      if (!this.frontendOptions.some((frontendOption) => frontendOption.value === this.value.spec.frontend)) {
+        set(this.value.spec, 'frontend', this.frontendOptions[0]?.value || 'blockdev');
       }
 
       if (
         this.value.spec.dataSourceVolume &&
-        !this.filteredVolumeOptions.some((o) => o.value === this.value.spec.dataSourceVolume)
+        !this.filteredVolumeOptions.some((volumeOption) => volumeOption.value === this.value.spec.dataSourceVolume)
       ) {
         set(this.value.spec, 'dataSourceVolume', '');
         set(this.value.spec, 'dataSourceSnapshot', '');
@@ -226,13 +257,9 @@ export default {
 
   methods: {
     initDataSourceType() {
-      const ds = this.value.spec.dataSource || '';
+      const { sourceType } = parseVolumeDataSource(this.value.spec.dataSource || '');
 
-      if (ds.startsWith('snap://')) {
-        this.localSourceType = SOURCE_TYPE_SNAPSHOT;
-      } else if (ds.startsWith('vol://')) {
-        this.localSourceType = SOURCE_TYPE_VOLUME;
-      }
+      this.localSourceType = sourceType;
     },
 
     async loadOptions() {
@@ -297,7 +324,9 @@ export default {
 
           if (spec.backupTargetName === undefined || spec.backupTargetName === '') {
             const defaultTarget = this.allBackupTargetsRaw.find(
-              (bt) => (bt.name || bt.metadata?.name || bt.id) === 'default'
+              (backupTargetResource) =>
+                (backupTargetResource.name || backupTargetResource.metadata?.name || backupTargetResource.id) ===
+                'default'
             );
 
             if (defaultTarget && defaultTarget.status?.available !== false) {
@@ -314,9 +343,9 @@ export default {
             set(spec, 'ublkNumberOfQueue', Number(ublkNumSetting.value));
           }
         }
-      } catch (e) {
+      } catch (initializationError) {
         // eslint-disable-next-line no-console
-        console.error('Error initializing Longhorn Basics', e);
+        console.error('Error initializing Longhorn Basics', initializationError);
       }
     },
 
@@ -328,17 +357,17 @@ export default {
 
     syncDataSourceString() {
       const { spec } = this.value;
-      const vol = spec.dataSourceVolume;
-      const snap = spec.dataSourceSnapshot;
+      const sourceVolumeName = spec.dataSourceVolume;
+      const sourceSnapshotName = spec.dataSourceSnapshot;
 
-      if (!this.localSourceType || !vol) {
+      if (!this.localSourceType || !sourceVolumeName) {
         set(spec, 'dataSource', '');
 
         return;
       }
-      const final = this.localSourceType === SOURCE_TYPE_SNAPSHOT ? `snap://${vol}/${snap || ''}` : `vol://${vol}`;
+      const dataSourceValue = buildVolumeDataSource(this.localSourceType, sourceVolumeName, sourceSnapshotName);
 
-      if (spec.dataSource !== final) set(spec, 'dataSource', final);
+      if (spec.dataSource !== dataSourceValue) set(spec, 'dataSource', dataSourceValue);
     },
 
     async loadSnapshots() {
@@ -351,12 +380,12 @@ export default {
     },
 
     mapToOptions(items, addNone = false) {
-      const options = (items || []).map((i) => ({
-        label: i.name || i.metadata?.name || i.id,
-        value: i.name || i.metadata?.name || i.id,
+      const options = (items || []).map((resourceItem) => ({
+        label: resourceItem.name || resourceItem.metadata?.name || resourceItem.id,
+        value: resourceItem.name || resourceItem.metadata?.name || resourceItem.id,
       }));
 
-      return addNone ? [{ label: 'None', value: '' }, ...options] : options;
+      return addNone ? [{ label: this.t('longhorn.volume.options.dataSource.none'), value: '' }, ...options] : options;
     },
 
     syncSizeFromSpec() {
@@ -380,8 +409,8 @@ export default {
       set(this.value.spec, 'size', String(bytes));
     },
 
-    setSizeFromResource(res) {
-      const rawBytes = res?.spec?.size || res?.status?.actualSize || 0;
+    setSizeFromResource(resource) {
+      const rawBytes = resource?.spec?.size || resource?.status?.actualSize || 0;
 
       set(this.value.spec, 'size', String(rawBytes));
       this.syncSizeFromSpec();
@@ -407,7 +436,7 @@ export default {
           />
           <LabeledSelect
             v-model:value="sizeUnit"
-            label="Unit"
+            :label="t('longhorn.volume.form.unit')"
             :options="unitOptions"
             :mode="mode"
             :disabled="isSizeDisabled"
@@ -457,7 +486,7 @@ export default {
         <LabeledInput
           v-model:value.number="value.spec.ublkNumberOfQueue"
           type="number"
-          label="UBLK Number of Queue"
+          :label="t('longhorn.volume.form.ublkNumberOfQueue')"
           required
           :mode="mode"
         />
@@ -466,7 +495,7 @@ export default {
         <LabeledInput
           v-model:value.number="value.spec.ublkQueueDepth"
           type="number"
-          label="UBLK Queue Depth"
+          :label="t('longhorn.volume.form.ublkQueueDepth')"
           required
           :mode="mode"
         />
@@ -528,7 +557,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model:value="value.spec.backupTargetName"
-          label="Backup Target"
+          :label="t('longhorn.volume.form.backupTarget')"
           :options="backupTargetOptions"
           :mode="mode"
           :searchable="true"

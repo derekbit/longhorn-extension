@@ -66,9 +66,9 @@ async function fetchData() {
     };
 
     await allHash(hash);
-  } catch (e) {
+  } catch (fetchError) {
     // console.error(`Failed to fetch ${props.resource} data:`, e);
-    loadError.value = e;
+    loadError.value = fetchError;
   } finally {
     isLoading.value = false;
   }

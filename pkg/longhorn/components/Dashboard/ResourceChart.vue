@@ -1,124 +1,135 @@
-<script setup>
-import { ref, computed } from 'vue';
-import { useStore } from 'vuex';
-import { useRoute } from 'vue-router';
-import { useI18n } from '@shell/composables/useI18n';
-import SemiDoughnut from '@longhorn/components/Charts/SemiDoughnut';
+<script>
 import { useTooltip, formatTooltipContent } from '@longhorn/components/Charts/composable';
+import SemiDoughnut from '@longhorn/components/Charts/SemiDoughnut';
 import Link from '@shell/components/formatter/Link';
 import { PRODUCT_NAME } from '@longhorn/types/longhorn';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 
-const props = defineProps({
-  title: {
-    type: String,
-    required: true,
+const tooltipComposable = useTooltip();
+
+export default {
+  name: 'ResourceChart',
+  components: {
+    Link,
+    SemiDoughnut,
   },
-  chartData: {
-    type: Object,
-    required: true,
+  props: {
+    title: {
+      type: String,
+      required: true,
+    },
+    chartData: {
+      type: Object,
+      required: true,
+    },
+    horizontal: {
+      type: Boolean,
+      default: false,
+    },
   },
-  horizontal: {
-    type: Boolean,
-    default: false,
-  },
-});
-
-const { t } = useI18n(useStore());
-const { showTooltip, hideTooltip } = useTooltip();
-const route = useRoute();
-
-const activeIndex = ref(null);
-
-const dataset = computed(() => props.chartData.datasets?.[0] ?? { data: [], backgroundColor: [] });
-
-const isLinkableResource = computed(() =>
-  ['longhorn.dashboard.node.title', 'longhorn.dashboard.volume.title'].includes(props.chartData.resourceNameKey)
-);
-
-const resourceTypeByChart = computed(() => {
-  const chartResource = props.chartData.resourceNameKey;
-
-  if (chartResource === 'longhorn.dashboard.node.title') {
-    return LONGHORN_RESOURCES.NODES;
-  }
-
-  if (chartResource === 'longhorn.dashboard.volume.title') {
-    return LONGHORN_RESOURCES.VOLUMES;
-  }
-
-  return null;
-});
-
-const listRouteName = `c-cluster-${PRODUCT_NAME}-resource`;
-
-const total = computed(() => {
-  const sum = dataset.value.data.reduce((a, b) => a + b, 0);
-
-  return Math.round(sum * 100) / 100;
-});
-
-const rows = computed(() =>
-  props.chartData.labels.map((label, index) => {
-    const value = dataset.value.data[index] ?? 0;
-    const isEmpty = value === 0;
-    const isLinkable = isLinkableResource.value && !isEmpty;
-    const filterValue = String(props.chartData.filterValues?.[index] ?? label);
-    const to =
-      isLinkable && resourceTypeByChart.value
-        ? {
-            name: listRouteName,
-            params: {
-              cluster: route.params.cluster,
-              resource: resourceTypeByChart.value,
-            },
-            query: {
-              ...route.query,
-              q: filterValue,
-            },
-          }
-        : null;
-
+  data() {
     return {
-      key: label,
-      label,
-      value,
-      to,
-      displayValue: isEmpty ? '—' : props.chartData.suffix ? `${value} ${props.chartData.suffix}` : `${value}`,
-      isEmpty,
-      isLinkable,
-      color: dataset.value.backgroundColor[index],
+      activeIndex: null,
+      showTooltip: tooltipComposable.showTooltip,
+      hideTooltip: tooltipComposable.hideTooltip,
+      listRouteName: `c-cluster-${PRODUCT_NAME}-resource`,
     };
-  })
-);
+  },
+  computed: {
+    dataset() {
+      return this.chartData.datasets?.[0] ?? { data: [], backgroundColor: [] };
+    },
+    isLinkableResource() {
+      return ['longhorn.dashboard.node.title', 'longhorn.dashboard.volume.title'].includes(
+        this.chartData.resourceNameKey
+      );
+    },
+    resourceTypeByChart() {
+      const chartResource = this.chartData.resourceNameKey;
 
-const totalRow = computed(() => ({
-  label: t('longhorn.dashboard.total'),
-  isEmpty: total.value === 0,
-  displayValue: props.chartData.suffix ? `${total.value} ${props.chartData.suffix}` : `${total.value}`,
-}));
+      if (chartResource === 'longhorn.dashboard.node.title') {
+        return LONGHORN_RESOURCES.NODES;
+      }
 
-function handleRowEnter(row, index, event) {
-  if (row.isEmpty) return;
+      if (chartResource === 'longhorn.dashboard.volume.title') {
+        return LONGHORN_RESOURCES.VOLUMES;
+      }
 
-  activeIndex.value = index;
+      return null;
+    },
+    total() {
+      const sum = this.dataset.data.reduce((totalValue, currentValue) => totalValue + currentValue, 0);
 
-  const content = formatTooltipContent({
-    label: row.label,
-    value: row.value,
-    total: total.value,
-    suffix: props.chartData.suffix,
-    resourceNameKey: props.chartData.resourceNameKey,
-    t,
-  });
+      return Math.round(sum * 100) / 100;
+    },
+    rows() {
+      const labels = this.chartData?.labels || [];
+      const data = this.dataset?.data || [];
+      const backgroundColor = this.dataset?.backgroundColor || [];
 
-  showTooltip(content, event);
-}
+      return labels.map((label, index) => {
+        const value = data[index] ?? 0;
+        const isEmpty = value === 0;
+        const isLinkable = this.isLinkableResource && !isEmpty;
+        const filterValue = String(this.chartData.filterValues?.[index] ?? label);
+        const to =
+          isLinkable && this.resourceTypeByChart
+            ? {
+                name: this.listRouteName,
+                params: {
+                  cluster: this.$route.params.cluster,
+                  resource: this.resourceTypeByChart,
+                },
+                query: {
+                  ...this.$route.query,
+                  q: filterValue,
+                },
+              }
+            : null;
 
-function handleRowLeave() {
-  activeIndex.value = null;
-  hideTooltip();
-}
+        return {
+          key: label,
+          label,
+          value,
+          to,
+          displayValue: isEmpty ? '—' : this.chartData.suffix ? `${value} ${this.chartData.suffix}` : `${value}`,
+          isEmpty,
+          isLinkable,
+          color: backgroundColor[index],
+        };
+      });
+    },
+    totalRow() {
+      return {
+        label: this.t('longhorn.dashboard.total'),
+        isEmpty: this.total === 0,
+        displayValue: this.chartData.suffix ? `${this.total} ${this.chartData.suffix}` : `${this.total}`,
+      };
+    },
+  },
+  methods: {
+    handleRowEnter(row, index, event) {
+      if (row.isEmpty) return;
+
+      this.activeIndex = index;
+
+      const content = formatTooltipContent({
+        label: row.label,
+        value: row.value,
+        total: this.total,
+        suffix: this.chartData.suffix,
+        resourceNameKey: this.chartData.resourceNameKey,
+        t: (key) => this.t(key),
+      });
+
+      this.showTooltip(content, event);
+    },
+    handleRowLeave() {
+      this.activeIndex = null;
+      this.hideTooltip();
+    },
+  },
+};
 </script>
 
 <template>
@@ -147,19 +158,16 @@ function handleRowLeave() {
         >
           <div class="metrics-status" :style="{ backgroundColor: row.color }" />
 
-          <component
-            :is="row.isLinkable ? Link : 'span'"
-            class="metrics-label"
-            :class="{
-              'secondary-text-link': row.isLinkable,
-              'text-secondary': row.isEmpty,
-            }"
-            v-bind="row.isLinkable ? { value: { text: row.label, to: row.to }, options: { internal: true } } : {}"
-          >
-            <template v-if="!row.isLinkable">
-              {{ row.label }}
-            </template>
-          </component>
+          <Link
+            v-if="row.isLinkable && row.to"
+            :row="row"
+            :value="{ text: row.label, to: row.to }"
+            :options="{ internal: true }"
+            class="metrics-label secondary-text-link"
+          />
+          <span v-else class="metrics-label" :class="{ 'text-secondary': row.isEmpty }">
+            {{ row.label }}
+          </span>
 
           <div class="metrics-value" :class="{ 'text-secondary': row.isEmpty }">
             {{ row.displayValue }}

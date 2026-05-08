@@ -1,24 +1,25 @@
 import LonghornModel from './longhorn';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
+import { BADGE_COLOR } from '@longhorn/types/badge';
 
 export default class BackupTargetModel extends LonghornModel {
   // State mapping specific to BackupTarget
   static get STATE_MAP() {
     return {
-      error: { display: 'Unavailable', background: 'bg-error' },
-      active: { display: 'Available', background: 'bg-success' },
+      error: { display: 'Unavailable', background: BADGE_COLOR.ERROR },
+      active: { display: 'Available', background: BADGE_COLOR.SUCCESS },
     };
   }
 
   get availableActions() {
-    const out = super._availableActions;
+    const availableActions = super._availableActions;
     const forbiddenActions = [AVAILABLE_ACTIONS.CLONE];
 
     if (this.metadata?.name === 'default') {
       forbiddenActions.push(AVAILABLE_ACTIONS.DELETE);
     }
 
-    return out.filter((item) => !forbiddenActions.includes(item.action));
+    return availableActions.filter((item) => !forbiddenActions.includes(item.action));
   }
 
   get _isUnavailable() {
@@ -26,7 +27,7 @@ export default class BackupTargetModel extends LonghornModel {
   }
 
   get _errorMessage() {
-    return this.findConditionMessage((c) => c.type === 'Unavailable' && c.status === 'True');
+    return this.findConditionMessage((condition) => condition.type === 'Unavailable' && condition.status === 'True');
   }
 
   get state() {

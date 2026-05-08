@@ -22,9 +22,9 @@ export default {
     if (inStore && this.$store.getters[`${inStore}/schemaFor`](resourceType)) {
       try {
         await this.$store.dispatch(`${inStore}/findAll`, { type: resourceType });
-      } catch (e) {
+      } catch (fetchError) {
         // eslint-disable-next-line no-console
-        console.error(`[Longhorn] Failed to fetch ${resourceType}:`, e);
+        console.error(`[Longhorn] Failed to fetch ${resourceType}:`, fetchError);
       }
     }
   },
@@ -38,29 +38,29 @@ export default {
       return [
         {
           name: 'attachmentID',
-          label: 'Attachment ID',
+          label: this.t('longhorn.volume.attachments.table.header.attachmentId'),
           sort: 'attachmentID',
         },
         {
           name: 'attachmentType',
-          label: 'Type',
+          label: this.t('longhorn.volume.attachments.table.header.type'),
           sort: 'attachmentType',
         },
         {
           name: 'nodeID',
-          label: 'Node',
+          label: this.t('longhorn.volume.attachments.table.header.node'),
           sort: 'nodeID',
           formatter: 'NodeName',
         },
         {
           name: 'satisfied',
-          label: 'Satisfied',
+          label: this.t('longhorn.volume.attachments.table.header.satisfied'),
           sort: 'satisfied',
           align: 'center',
         },
         {
           name: 'lastTransitionTime',
-          label: 'Last Transition',
+          label: this.t('longhorn.volume.attachments.table.header.lastTransition'),
           sort: 'lastTransitionTime',
           formatter: 'LiveDate',
         },
@@ -72,7 +72,7 @@ export default {
     getIncompleteMessage(row) {
       const firstCondition = row.conditions?.[0];
 
-      return firstCondition?.message || 'Attachment criteria not yet satisfied';
+      return firstCondition?.message || this.t('longhorn.volume.attachments.messages.criteriaNotSatisfied');
     },
   },
 };
@@ -89,13 +89,15 @@ export default {
       :row-actions="false"
       default-sort-by="attachmentID"
     >
-      <template #cell:satisfied="{ row, value }">
-        <span v-if="value">Yes</span>
-        <span v-else v-clean-tooltip="getIncompleteMessage(row)" class="cursor-help">No</span>
+      <template #cell:satisfied="{ row, value: isSatisfied }">
+        <span v-if="isSatisfied">{{ t('longhorn.volume.attachments.value.yes') }}</span>
+        <span v-else v-clean-tooltip="getIncompleteMessage(row)" class="cursor-help">{{
+          t('longhorn.volume.attachments.value.no')
+        }}</span>
       </template>
 
-      <template #cell:nodeID="{ value }">
-        <NodeName :value="value" />
+      <template #cell:nodeID="{ value: nodeId }">
+        <NodeName :value="nodeId" />
       </template>
     </SortableTable>
   </div>

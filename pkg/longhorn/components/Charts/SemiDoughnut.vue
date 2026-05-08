@@ -85,7 +85,7 @@ const stableChartState = computed(() => {
       datasets: [{ data, backgroundColor }],
     },
     indexMap,
-    total: data.reduce((a, b) => a + b, 0),
+    total: data.reduce((totalValue, currentValue) => totalValue + currentValue, 0),
   };
 });
 

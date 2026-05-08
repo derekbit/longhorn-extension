@@ -1,19 +1,24 @@
 <script setup>
 import { computed } from 'vue';
+import { useStore } from 'vuex';
 import { BadgeState } from '@components/BadgeState';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import LabelValue from '@shell/components/LabelValue';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import LabelValue from '@shell/components/LabelValue';
+import { useI18n } from '@shell/composables/useI18n';
+import { formatSi } from '@shell/utils/units';
 import SortableTable from '@shell/components/SortableTable';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
-
-const SOURCE_TYPES = [
-  { label: 'Download From URL', value: 'download' },
-  { label: 'Upload From Local', value: 'upload' },
-  { label: 'Export From a Longhorn Volume', value: 'export-from-volume' },
-  { label: 'Clone From Existing Backing Image', value: 'clone' },
-];
+import { BADGE_COLOR } from '@longhorn/types/badge';
+import {
+  BACKING_IMAGE_ENCRYPTION_TYPE_OPTIONS,
+  BACKING_IMAGE_EXPORT_TYPE_OPTIONS,
+  BACKING_IMAGE_SOURCE_TYPE,
+  BACKING_IMAGE_SOURCE_TYPE_OPTIONS,
+} from '@longhorn/types/backing-image';
 
 const props = defineProps({
   value: {
@@ -26,21 +31,64 @@ const props = defineProps({
   },
 });
 
+const store = useStore();
+const { t } = useI18n(store);
+
+function translateOptionLabels(options = []) {
+  return options.map((option) => ({
+    ...option,
+    label: option.label || (option.labelKey ? t(option.labelKey) : option.value),
+  }));
+}
+
+const sourceTypeOptions = computed(() => translateOptionLabels(BACKING_IMAGE_SOURCE_TYPE_OPTIONS));
+const exportTypeOptions = computed(() => translateOptionLabels(BACKING_IMAGE_EXPORT_TYPE_OPTIONS));
+const encryptionTypeOptions = computed(() => translateOptionLabels(BACKING_IMAGE_ENCRYPTION_TYPE_OPTIONS));
+
 const sourceType = computed(() => props.value?.spec?.sourceType);
 
 const sourceTypeDisplay = computed(() => {
-  const st = SOURCE_TYPES.find((st) => st.value === props.value?.spec?.sourceType);
+  const current = sourceType.value;
+  const matched = sourceTypeOptions.value.find((option) => option.value === current);
 
-  return st?.label || props.value?.spec?.sourceType;
+  return matched?.label || displayValue(current);
+});
+
+const actualSizeDisplay = computed(() => {
+  const size = props.value?.status?.realSize;
+
+  if (!size) {
+    return '—';
+  }
+
+  return formatSi(size, {
+    suffix: 'iB',
+    firstSuffix: 'B',
+    increment: 1024,
+  });
+});
+
+const virtualSizeDisplay = computed(() => {
+  const size = props.value?.status?.virtualSize;
+
+  if (!size) {
+    return '—';
+  }
+
+  return formatSi(size, {
+    suffix: 'iB',
+    firstSuffix: 'B',
+    increment: 1024,
+  });
 });
 
 const STATE_BADGE_MAP = {
-  ready: { stateDisplay: 'Ready', stateBackground: 'bg-success' },
-  'in-progress': { stateDisplay: 'In Progress', stateBackground: 'bg-info' },
-  downloading: { stateDisplay: 'Downloading', stateBackground: 'bg-info' },
-  pending: { stateDisplay: 'Pending', stateBackground: 'badge-disabled' },
-  failed: { stateDisplay: 'Failed', stateBackground: 'bg-error' },
-  unknown: { stateDisplay: 'Unknown', stateBackground: 'badge-disabled' },
+  ready: { stateDisplay: t('longhorn.backingImage.state.ready'), stateBackground: BADGE_COLOR.SUCCESS },
+  'in-progress': { stateDisplay: t('longhorn.backingImage.state.inProgress'), stateBackground: BADGE_COLOR.INFO },
+  downloading: { stateDisplay: t('longhorn.backingImage.state.downloading'), stateBackground: BADGE_COLOR.INFO },
+  pending: { stateDisplay: t('longhorn.backingImage.state.pending'), stateBackground: BADGE_COLOR.DISABLED },
+  failed: { stateDisplay: t('longhorn.backingImage.state.failed'), stateBackground: BADGE_COLOR.ERROR },
+  unknown: { stateDisplay: t('longhorn.backingImage.state.unknown'), stateBackground: BADGE_COLOR.DISABLED },
 };
 
 const diskFileStatuses = computed(() => {
@@ -49,8 +97,8 @@ const diskFileStatuses = computed(() => {
   return Object.entries(diskMap).map(([key, statusMap]) => {
     const rawState = (statusMap?.state || 'unknown').toLowerCase();
     const badge = STATE_BADGE_MAP[rawState] || {
-      stateDisplay: statusMap?.state || 'Unknown',
-      stateBackground: 'badge-disabled',
+      stateDisplay: statusMap?.state || t('longhorn.backingImage.state.unknown'),
+      stateBackground: BADGE_COLOR.DISABLED,
     };
     const progress = statusMap?.progress ? parseInt(statusMap.progress, 10) : 0;
     const isInProgress = rawState === 'in-progress' || rawState === 'downloading';
@@ -73,10 +121,6 @@ const diskFileStatuses = computed(() => {
   });
 });
 
-const isReady = computed(() => {
-  return diskFileStatuses.value.length > 0 && diskFileStatuses.value.every((item) => item.status === 'ready');
-});
-
 const isChecksumMismatch = computed(() => {
   const expected = (props.value?.spec?.checksum || '').trim();
   const current = (props.value?.status?.checksum || '').trim();
@@ -84,40 +128,53 @@ const isChecksumMismatch = computed(() => {
   return expected !== '' && expected !== current;
 });
 
-const diskHeaders = [
+const diskHeaders = computed(() => [
   {
     name: 'status',
-    label: 'Status',
+    label: t('longhorn.backingImage.table.header.status'),
     value: 'status',
     sort: ['status'],
     width: 250,
   },
   {
     name: 'disk',
-    label: 'Disk',
+    label: t('longhorn.backingImage.table.header.disk'),
     value: 'disk',
     sort: ['disk'],
   },
   {
     name: 'operation',
-    label: 'Operation',
+    label: t('longhorn.backingImage.table.header.operation'),
     width: 150,
   },
-];
+]);
 
-async function cleanUp(row) {
-  if (window.confirm(`Are you sure you want to clean up the image file from the disk (${row.disk})?`)) {
-    try {
-      await props.value.doAction('backingImageCleanup', { disks: [row.disk] });
-    } catch (err) {
-      console.error('Failed to clean up disk:', err);
-    }
-  }
+function openActionDialog({ title, message, confirmLabel, confirmButtonClass, onConfirm }) {
+  store.dispatch('management/promptModal', {
+    component: 'ActionConfirmDialog',
+    componentProps: {
+      title,
+      message,
+      confirmLabel,
+      confirmButtonClass,
+      onConfirm,
+    },
+  });
 }
 
-function ensureResourceStructure() {
-  if (!props.value.spec) props.value.spec = { sourceParameters: {} };
-  if (!props.value.spec.sourceParameters) props.value.spec.sourceParameters = {};
+async function cleanUp(row) {
+  openActionDialog({
+    title: t('longhorn.backingImage.actions.cleanUp'),
+    message: t('longhorn.backingImage.messages.confirmCleanUp', { disk: row.disk }),
+    confirmLabel: t('longhorn.backingImage.actions.cleanUp'),
+    onConfirm: async () => {
+      try {
+        // TODO: Implement disk cleanup via Longhorn manager API.
+        // Call: doAction('backingImageCleanup', { disks: [row.disk] })
+        // Reference: longhorn-ui/src/services/backingImage.js - deleteDisksOnBackingImage()
+      } catch {}
+    },
+  });
 }
 
 function displayValue(val) {
@@ -127,8 +184,6 @@ function displayValue(val) {
 
   return val === null || val === undefined || String(val).trim() === '' ? '—' : val;
 }
-
-ensureResourceStructure();
 </script>
 
 <template>
@@ -136,77 +191,168 @@ ensureResourceStructure();
     <NameNsDescription :value="value" :mode="mode" :force-namespace="LONGHORN_NAMESPACE" />
 
     <Tabbed side-tabs class="mt-20">
-      <Tab name="basics" label="Basics">
-        <LabelValue name="UUID" :value="displayValue(value?.status?.uuid)" />
+      <Tab name="basics" :label="t('longhorn.backingImage.tab.basics')">
+        <LabelValue
+          class="mb-20"
+          :name="t('longhorn.backingImage.table.header.uuid')"
+          :value="displayValue(value?.status?.uuid)"
+        />
 
-        <LabelValue name="Source Type" :value="displayValue(sourceTypeDisplay)" />
+        <div class="row mb-20">
+          <div class="col span-12">
+            <LabelValue :name="t('longhorn.backingImage.table.header.actualSize')" :value="actualSizeDisplay" />
+          </div>
+        </div>
 
-        <template v-if="sourceType === 'export-from-volume'">
-          <LabelValue name="Volume Name" :value="displayValue(value?.spec?.sourceParameters?.['volume-name'])" />
-          <LabelValue name="Exported Type" :value="displayValue(value?.spec?.sourceParameters?.['export-type'])" />
-          <LabelValue
-            v-if="value?.spec?.sourceParameters?.encryption"
-            name="Encryption"
-            :value="displayValue(value?.spec?.sourceParameters?.encryption)"
-          />
-          <div class="row">
+        <div class="row mb-20">
+          <div class="col span-12">
+            <LabelValue :name="t('longhorn.backingImage.table.header.virtualSize')" :value="virtualSizeDisplay" />
+          </div>
+        </div>
+
+        <div class="row mb-20">
+          <div class="col span-12">
+            <LabelValue :name="t('longhorn.backingImage.table.header.sourceType')" :value="sourceTypeDisplay" />
+          </div>
+        </div>
+
+        <template v-if="sourceType === BACKING_IMAGE_SOURCE_TYPE.EXPORT_FROM_VOLUME">
+          <div class="row mb-20">
+            <div class="col span-12">
+              <LabeledInput
+                :label="t('longhorn.backingImage.form.volumeName')"
+                :value="displayValue(value?.spec?.sourceParameters?.['volume-name'])"
+                :mode="mode"
+                required
+                disabled
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <div class="col span-12">
+              <LabeledSelect
+                :label="t('longhorn.backingImage.form.exportedType')"
+                :value="value?.spec?.sourceParameters?.['export-type']"
+                :options="exportTypeOptions"
+                :mode="mode"
+                required
+                disabled
+              />
+            </div>
+          </div>
+          <div v-if="value?.spec?.sourceParameters?.encryption" class="row mb-20">
+            <div class="col span-12">
+              <LabeledSelect
+                :label="t('longhorn.backingImage.form.encryption')"
+                :value="value?.spec?.sourceParameters?.encryption"
+                :options="encryptionTypeOptions"
+                :mode="mode"
+                required
+                disabled
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
             <div class="col span-6">
-              <LabelValue
+              <LabeledInput
                 v-if="value?.spec?.sourceParameters?.secret"
-                name="Secret"
+                :label="t('longhorn.backingImage.form.secret')"
                 :value="displayValue(value?.spec?.sourceParameters?.secret)"
+                :mode="mode"
+                disabled
               />
             </div>
             <div class="col span-6">
-              <LabelValue
+              <LabeledInput
                 v-if="value?.spec?.sourceParameters?.['secret-namespace']"
-                name="Secret Namespace"
+                :label="t('longhorn.backingImage.form.secretNamespace')"
                 :value="displayValue(value?.spec?.sourceParameters?.['secret-namespace'])"
+                :mode="mode"
+                disabled
               />
             </div>
           </div>
         </template>
 
-        <template v-else-if="sourceType === 'download'">
-          <LabelValue name="URL" :value="displayValue(value?.spec?.sourceParameters?.url)" />
-        </template>
-
-        <template v-else-if="sourceType === 'clone'">
-          <LabelValue name="Source Image" :value="displayValue(value?.spec?.sourceParameters?.['backing-image'])" />
-          <LabelValue
-            v-if="value?.spec?.sourceParameters?.encryption"
-            name="Encryption"
-            :value="displayValue(value?.spec?.sourceParameters?.encryption)"
-          />
-          <div class="row">
-            <div class="col span-6">
-              <LabelValue
-                v-if="value?.spec?.sourceParameters?.secret"
-                name="Secret"
-                :value="displayValue(value?.spec?.sourceParameters?.secret)"
-              />
-            </div>
-            <div class="col span-6">
-              <LabelValue
-                v-if="value?.spec?.sourceParameters?.['secret-namespace']"
-                name="Secret Namespace"
-                :value="displayValue(value?.spec?.sourceParameters?.['secret-namespace'])"
+        <template v-else-if="sourceType === BACKING_IMAGE_SOURCE_TYPE.DOWNLOAD">
+          <div class="row mb-20">
+            <div class="col span-12">
+              <LabeledInput
+                :label="t('longhorn.backingImage.form.url')"
+                :value="displayValue(value?.spec?.sourceParameters?.url)"
+                :mode="mode"
+                required
+                disabled
               />
             </div>
           </div>
         </template>
 
-        <template v-if="['download', 'upload'].includes(sourceType)">
-          <LabelValue name="Expected Checksum">
-            <template #value>
-              <span class="checksum-text">{{ displayValue(value?.spec?.checksum) }}</span>
-            </template>
-          </LabelValue>
+        <template v-else-if="sourceType === BACKING_IMAGE_SOURCE_TYPE.CLONE">
+          <div class="row mb-20">
+            <div class="col span-12">
+              <LabeledInput
+                :label="t('longhorn.backingImage.form.sourceImage')"
+                :value="displayValue(value?.spec?.sourceParameters?.['backing-image'])"
+                :mode="mode"
+                required
+                disabled
+              />
+            </div>
+          </div>
+          <div v-if="value?.spec?.sourceParameters?.encryption" class="row mb-20">
+            <div class="col span-12">
+              <LabeledSelect
+                :label="t('longhorn.backingImage.form.encryption')"
+                :value="value?.spec?.sourceParameters?.encryption"
+                :options="encryptionTypeOptions"
+                :mode="mode"
+                required
+                disabled
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-if="value?.spec?.sourceParameters?.secret"
+                :label="t('longhorn.backingImage.form.secret')"
+                :value="displayValue(value?.spec?.sourceParameters?.secret)"
+                :mode="mode"
+                :required="['encrypt', 'decrypt'].includes(value?.spec?.sourceParameters?.encryption)"
+                disabled
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-if="value?.spec?.sourceParameters?.['secret-namespace']"
+                :label="t('longhorn.backingImage.form.secretNamespace')"
+                :value="displayValue(value?.spec?.sourceParameters?.['secret-namespace'])"
+                :mode="mode"
+                :required="['encrypt', 'decrypt'].includes(value?.spec?.sourceParameters?.encryption)"
+                disabled
+              />
+            </div>
+          </div>
         </template>
 
-        <LabelValue name="Current Checksum">
+        <template v-if="[BACKING_IMAGE_SOURCE_TYPE.DOWNLOAD, BACKING_IMAGE_SOURCE_TYPE.UPLOAD].includes(sourceType)">
+          <div class="row mb-20">
+            <div class="col span-12">
+              <LabeledInput
+                :label="t('longhorn.backingImage.form.expectedChecksum')"
+                :value="displayValue(value?.spec?.checksum)"
+                type="multiline"
+                :mode="mode"
+                disabled
+              />
+            </div>
+          </div>
+        </template>
+
+        <LabelValue class="mb-20" :name="t('longhorn.backingImage.form.currentChecksum')">
           <template #name>
-            <label>Current Checksum</label>
+            <label>{{ t('longhorn.backingImage.form.currentChecksum') }}</label>
             <i
               v-if="isChecksumMismatch"
               v-clean-tooltip="t('longhorn.backingImage.checksumMismatch')"
@@ -218,25 +364,48 @@ ensureResourceStructure();
           </template>
         </LabelValue>
 
-        <div class="row">
+        <div class="row mb-20">
           <div class="col span-6">
-            <LabelValue name="Min Copies" :value="displayValue(value?.spec?.minNumberOfCopies)" />
+            <LabeledInput
+              :label="t('longhorn.backingImage.table.header.minNumberOfCopies')"
+              :value="displayValue(value?.spec?.minNumberOfCopies)"
+              :mode="mode"
+              required
+              disabled
+            />
           </div>
           <div class="col span-6">
-            <LabelValue name="Data Engine" :value="displayValue(value?.spec?.dataEngine)" />
+            <LabeledSelect
+              :label="t('longhorn.volume.table.header.dataEngine')"
+              :value="value?.spec?.dataEngine"
+              :options="['v1', 'v2']"
+              :mode="mode"
+              required
+              disabled
+            />
           </div>
         </div>
-        <div class="row">
+        <div class="row mb-20">
           <div class="col span-6">
-            <LabelValue :name="t('longhorn.volume.form.nodeTag')" :value="displayValue(value?.spec?.nodeSelector)" />
+            <LabeledInput
+              :label="t('longhorn.volume.form.nodeTag')"
+              :value="displayValue(value?.spec?.nodeSelector)"
+              :mode="mode"
+              disabled
+            />
           </div>
           <div class="col span-6">
-            <LabelValue :name="t('longhorn.volume.form.diskTag')" :value="displayValue(value?.spec?.diskSelector)" />
+            <LabeledInput
+              :label="t('longhorn.volume.form.diskTag')"
+              :value="displayValue(value?.spec?.diskSelector)"
+              :mode="mode"
+              disabled
+            />
           </div>
         </div>
       </Tab>
 
-      <Tab name="disks" label="Disks">
+      <Tab name="disks" :label="t('longhorn.backingImage.tab.disks')">
         <SortableTable
           :headers="diskHeaders"
           :rows="diskFileStatuses"
@@ -252,7 +421,9 @@ ensureResourceStructure();
           </template>
           <template #col:operation="{ row }">
             <td>
-              <button class="btn btn-sm role-secondary" @click.stop="cleanUp(row)">Clean Up</button>
+              <button class="btn btn-sm role-secondary" @click.stop="cleanUp(row)">
+                {{ t('longhorn.backingImage.actions.cleanUp') }}
+              </button>
             </td>
           </template>
         </SortableTable>
@@ -262,14 +433,10 @@ ensureResourceStructure();
 </template>
 
 <style lang="scss" scoped>
-.label {
-  margin-bottom: 20px;
-}
 .checksum-text {
+  display: block;
+  white-space: normal;
   word-break: break-all;
-}
-.checksum-container {
-  display: flex;
-  align-items: center;
+  overflow-wrap: anywhere;
 }
 </style>

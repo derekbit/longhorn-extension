@@ -1,20 +1,21 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { BADGE_COLOR } from '@longhorn/types/badge';
 
 // Standard state display and color mapping for all resources
 const DEFAULT_STATE_MAP = {
-  error: { display: 'Error', background: 'bg-error' },
-  failed: { display: 'Failed', background: 'bg-error' },
-  active: { display: 'Active', background: 'bg-success' },
-  ready: { display: 'Ready', background: 'bg-success' },
-  available: { display: 'Available', background: 'bg-success' },
-  healthy: { display: 'Healthy', background: 'bg-success' },
-  transitioning: { display: 'In Progress', background: 'bg-warning' },
-  warning: { display: 'Warning', background: 'bg-warning' },
-  degraded: { display: 'Degraded', background: 'bg-warning' },
-  disabled: { display: 'Disabled', background: 'badge-disabled' },
-  stopped: { display: 'Stopped', background: 'bg-info' },
-  info: { display: 'Info', background: 'bg-info' },
-  unknown: { display: 'Unknown', background: 'badge-disabled' },
+  error: { display: 'Error', background: BADGE_COLOR.ERROR },
+  failed: { display: 'Failed', background: BADGE_COLOR.ERROR },
+  active: { display: 'Active', background: BADGE_COLOR.SUCCESS },
+  ready: { display: 'Ready', background: BADGE_COLOR.SUCCESS },
+  available: { display: 'Available', background: BADGE_COLOR.SUCCESS },
+  healthy: { display: 'Healthy', background: BADGE_COLOR.SUCCESS },
+  transitioning: { display: 'In Progress', background: BADGE_COLOR.WARNING },
+  warning: { display: 'Warning', background: BADGE_COLOR.WARNING },
+  degraded: { display: 'Degraded', background: BADGE_COLOR.WARNING },
+  disabled: { display: 'Disabled', background: BADGE_COLOR.DISABLED },
+  stopped: { display: 'Stopped', background: BADGE_COLOR.INFO },
+  info: { display: 'Info', background: BADGE_COLOR.INFO },
+  unknown: { display: 'Unknown', background: BADGE_COLOR.DISABLED },
 };
 
 export default class LonghornModel extends SteveModel {
@@ -95,7 +96,7 @@ export default class LonghornModel extends SteveModel {
     const map = { ...DEFAULT_STATE_MAP, ...customMap };
     const normalized = (state || '').toLowerCase();
 
-    return map[normalized]?.background || 'bg-info';
+    return map[normalized]?.background || BADGE_COLOR.INFO;
   }
 
   _capitalizeState(state) {

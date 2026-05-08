@@ -163,7 +163,15 @@ export default class NodeModel extends LonghornModel {
   }
 
   get readiness() {
-    return this.isReady ? 'Ready' : 'Not Ready';
+    if (this.nodeStatus?.stateDisplay === 'Down') {
+      return 'Not Ready';
+    }
+
+    if (this.readyCondition?.type === 'Ready') {
+      return 'Ready';
+    }
+
+    return 'Deploying';
   }
 
   get disks() {

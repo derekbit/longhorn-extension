@@ -3,7 +3,7 @@ export const PRODUCT_NAME = 'longhorn-extension';
 export const LONGHORN_NAMESPACE = 'longhorn-system';
 export const LONGHORN_DASHBOARD = 'dashboard';
 
-export const LONGHORN_PAGES = {
+export const LONGHORN_PAGES = Object.freeze({
   DASHBOARD: 'Dashboard',
   NODES: 'Nodes',
   VOLUMES: 'Volumes',
@@ -18,25 +18,25 @@ export const LONGHORN_PAGES = {
   ORPHANS: 'Orphans Resources',
   BACKING_IMAGES: 'Backing Images',
   BACKING_IMAGE_BACKUPS: 'Backup Backing Images',
-};
+});
 
-export const LONGHORN_GROUP = {
+export const LONGHORN_GROUP = Object.freeze({
   ADVANCED: 'Advanced',
   BACKUP_AND_RESTORE: 'Backup and Restore',
-};
+});
 
-export const AVAILABLE_ACTIONS = {
+export const AVAILABLE_ACTIONS = Object.freeze({
   EDIT: 'goToEdit',
   EDIT_YAML: 'goToEditYaml',
   CLONE: 'goToClone',
   CLONE_YAML: 'cloneYaml',
   DELETE: 'promptRemove',
-};
+});
 
-export const LONGHORN_COLORS = {
+export const LONGHORN_COLORS = Object.freeze({
   SUCCESS: '#27AE5F',
   WARNING: '#F1C40F',
   DANGER: '#EF494A',
   INFO: '#78C8CF',
   MUTED: '#D9DDDF',
-};
+});

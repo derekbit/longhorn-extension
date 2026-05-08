@@ -7,6 +7,7 @@ import LiveDate from '@shell/components/formatter/LiveDate';
 import { allHash } from '@shell/utils/promise';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 import { VOLUME_STATE, VOLUME_STATE_ORDER } from '@longhorn/types/volume';
+import { getVolumeStateQueryValue } from '@longhorn/utils/volume';
 import { bytesToGi } from '@longhorn/utils/formatter';
 import { GiB_UNIT } from '@longhorn/types/units';
 
@@ -51,22 +52,23 @@ export default {
     getNodeStatus(node) {
       if (!node.status) return NODE_STATUS.DOWN;
 
-      const cond = (t) => node.status?.conditions?.find((c) => c.type === t)?.status;
+      const getConditionStatus = (conditionType) =>
+        node.status?.conditions?.find((condition) => condition.type === conditionType)?.status;
 
-      const ready = cond('Ready');
-      const sched = cond('Schedulable');
+      const readyStatus = getConditionStatus('Ready');
+      const schedulableStatus = getConditionStatus('Schedulable');
 
-      if (ready === 'False') return NODE_STATUS.DOWN;
+      if (readyStatus === 'False') return NODE_STATUS.DOWN;
       if (node.spec?.allowScheduling === false) return NODE_STATUS.DISABLED;
-      if (sched === 'False') return NODE_STATUS.UNSCHEDULABLE;
-      if (ready === 'True' && sched === 'True') return NODE_STATUS.SCHEDULABLE;
+      if (schedulableStatus === 'False') return NODE_STATUS.UNSCHEDULABLE;
+      if (readyStatus === 'True' && schedulableStatus === 'True') return NODE_STATUS.SCHEDULABLE;
 
       return NODE_STATUS.DOWN;
     },
 
     hasData(chart) {
       if (!chart?.datasets?.length) return false;
-      const sum = chart.datasets[0].data.reduce((a, b) => a + b, 0);
+      const sum = chart.datasets[0].data.reduce((total, value) => total + value, 0);
 
       return sum > 0.01;
     },
@@ -92,16 +94,17 @@ export default {
 
         const disksSpec = node.spec?.disks || {};
 
-        for (const [diskName, st] of Object.entries(diskStatus)) {
+        for (const [diskName, diskStatusEntry] of Object.entries(diskStatus)) {
           const spec = disksSpec[diskName] || {};
-          const type = st.diskType || spec.diskType;
+          const type = diskStatusEntry.diskType || spec.diskType;
 
           if (!type || !['filesystem', 'block'].includes(type)) continue;
 
-          const max = st.storageMaximum || 0;
-          const avail = st.storageAvailable || 0;
+          const max = diskStatusEntry.storageMaximum || 0;
+          const avail = diskStatusEntry.storageAvailable || 0;
           const reserved = spec.storageReserved || 0;
-          const schedulable = st.conditions?.find((c) => c.type === 'Schedulable')?.status === 'True';
+          const schedulable =
+            diskStatusEntry.conditions?.find((condition) => condition.type === 'Schedulable')?.status === 'True';
 
           const group = type === 'filesystem' ? totals.fs : totals.block;
 
@@ -127,8 +130,8 @@ export default {
         [VOLUME_STATE.DETACHED]: 0,
       };
 
-      this.volumes.forEach((v) => {
-        const stateFilter = v.dashboardStateDisplay || VOLUME_STATE.IN_PROGRESS;
+      this.volumes.forEach((volumeResource) => {
+        const stateFilter = volumeResource.dashboardStateDisplay || VOLUME_STATE.IN_PROGRESS;
 
         if (Object.prototype.hasOwnProperty.call(counts, stateFilter)) {
           counts[stateFilter]++;
@@ -146,7 +149,7 @@ export default {
       return {
         title: this.t('longhorn.dashboard.volume.title'),
         labels: volumeLabels,
-        filterValues: VOLUME_STATE_ORDER,
+        filterValues: VOLUME_STATE_ORDER.map((state) => getVolumeStateQueryValue(state)),
         datasets: [
           {
             data: VOLUME_STATE_ORDER.map((state) => counts[state]),
@@ -164,7 +167,7 @@ export default {
     },
 
     getFilesystemStorageChartData() {
-      const t = this.processDisks().fs;
+      const filesystemTotals = this.processDisks().fs;
 
       const storageLabels = [
         this.t('longhorn.storage.schedulable'),
@@ -178,7 +181,12 @@ export default {
         labels: storageLabels,
         datasets: [
           {
-            data: [bytesToGi(t.sched), bytesToGi(t.reserved), bytesToGi(t.used), bytesToGi(t.disabled)],
+            data: [
+              bytesToGi(filesystemTotals.sched),
+              bytesToGi(filesystemTotals.reserved),
+              bytesToGi(filesystemTotals.used),
+              bytesToGi(filesystemTotals.disabled),
+            ],
             backgroundColor: [
               LONGHORN_COLORS.SUCCESS,
               LONGHORN_COLORS.WARNING,
@@ -321,16 +329,16 @@ export default {
       }
 
       const timestamps = this.nodes
-        .map((n) => n?.metadata?.creationTimestamp)
-        .filter((ts) => !!ts)
-        .map((ts) => new Date(ts))
-        .filter((d) => !isNaN(d.getTime()));
+        .map((nodeResource) => nodeResource?.metadata?.creationTimestamp)
+        .filter((timestamp) => !!timestamp)
+        .map((timestamp) => new Date(timestamp))
+        .filter((dateValue) => !isNaN(dateValue.getTime()));
 
       if (!timestamps.length) {
         return new Date().toISOString();
       }
 
-      const earliest = new Date(Math.min(...timestamps.map((d) => d.getTime())));
+      const earliest = new Date(Math.min(...timestamps.map((dateValue) => dateValue.getTime())));
 
       return earliest.toISOString();
     },

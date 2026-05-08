@@ -1,5 +1,6 @@
 import LonghornModel from './longhorn';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
+import { BADGE_COLOR } from '@longhorn/types/badge';
 
 const CURRENT_STATE_TO_STATE = {
   running: 'active',
@@ -13,35 +14,39 @@ export default class InstanceManagerModel extends LonghornModel {
   // State mapping specific to InstanceManager
   static get STATE_MAP() {
     return {
-      active: { display: 'Running', background: 'bg-success' },
-      error: { display: 'Error', background: 'bg-error' },
-      stopped: { display: 'Stopped', background: 'bg-info' },
-      stopping: { display: 'Stopping', background: 'bg-warning' },
-      transitioning: { display: 'Starting', background: 'bg-warning' },
+      active: { display: 'Running', background: BADGE_COLOR.SUCCESS },
+      error: { display: 'Error', background: BADGE_COLOR.ERROR },
+      stopped: { display: 'Stopped', background: BADGE_COLOR.INFO },
+      stopping: { display: 'Stopping', background: BADGE_COLOR.WARNING },
+      transitioning: { display: 'Starting', background: BADGE_COLOR.WARNING },
     };
   }
 
   get availableActions() {
-    const out = super._availableActions;
+    const availableActions = super._availableActions;
     const forbiddenActions = [AVAILABLE_ACTIONS.CLONE_YAML];
 
-    return out.filter((item) => !forbiddenActions.includes(item.action));
+    return availableActions.filter((item) => !forbiddenActions.includes(item.action));
   }
 
   get state() {
     const currentState = this.status?.currentState?.toLowerCase();
-    const failedCond = this.findConditionMessage((c) => c.status?.toLowerCase() === 'false');
+    const failedConditionMessage = this.findConditionMessage(
+      (condition) => condition.status?.toLowerCase() === 'false'
+    );
 
-    if (failedCond) return 'error';
+    if (failedConditionMessage) return 'error';
 
     return CURRENT_STATE_TO_STATE[currentState] || currentState || 'unknown';
   }
 
   get stateDescription() {
-    const failedCond = this.findConditionMessage((c) => c.status?.toLowerCase() === 'false');
+    const failedConditionMessage = this.findConditionMessage(
+      (condition) => condition.status?.toLowerCase() === 'false'
+    );
     const statusError = this.getStatusErrorMessage(() => (this.status?.currentState || '').toLowerCase() === 'error');
 
-    return failedCond || statusError || '';
+    return failedConditionMessage || statusError || '';
   }
 
   get stateDisplay() {

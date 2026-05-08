@@ -218,18 +218,18 @@ export default {
     },
 
     formatDescription(text) {
-      const fallback = (val) => (val || '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      const markdownFallback = (fallbackText) => (fallbackText || '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
       if (!text) return '';
-      if (!this.$markdownRenderer) return fallback(text);
+      if (!this.$markdownRenderer) return markdownFallback(text);
 
       try {
         return marked(text, {
           renderer: this.$markdownRenderer,
           breaks: true,
         });
-      } catch (e) {
-        return fallback(text);
+      } catch {
+        return markdownFallback(text);
       }
     },
   },
@@ -344,12 +344,12 @@ export default {
 .settings-container {
   margin-top: 20px;
 
-  ::v-deep .tabbed-container.side-tabs > .tab-container {
+  :deep(.tabbed-container.side-tabs > .tab-container) {
     max-height: var(--settings-tab-content-max-height, none);
     overflow-y: auto;
   }
 
-  ::v-deep .tabbed-container.side-tabs > .tabs.vertical {
+  :deep(.tabbed-container.side-tabs > .tabs.vertical) {
     position: sticky;
     top: 0;
     max-height: 100%;
@@ -381,7 +381,7 @@ export default {
     .input-wrapper {
       flex: 0 1 auto;
 
-      ::v-deep .labeled-select,
+      :deep(.labeled-select),
       .labeled-input {
         width: 100%;
       }

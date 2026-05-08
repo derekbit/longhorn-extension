@@ -1,22 +1,23 @@
 import LonghornModel from './longhorn';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
+import { BADGE_COLOR } from '@longhorn/types/badge';
 
 export default class SystemRestoreModel extends LonghornModel {
   // State mapping specific to SystemRestore
   static get STATE_MAP() {
     return {
-      active: { display: 'Completed', background: 'bg-success' },
-      error: { display: 'Error', background: 'bg-error' },
-      transitioning: { display: 'In Progress', background: 'bg-warning' },
+      active: { display: 'Completed', background: BADGE_COLOR.SUCCESS },
+      error: { display: 'Error', background: BADGE_COLOR.ERROR },
+      transitioning: { display: 'In Progress', background: BADGE_COLOR.WARNING },
     };
   }
 
   get availableActions() {
-    const out = super._availableActions;
+    const availableActions = super._availableActions;
     const forbiddenActions = [AVAILABLE_ACTIONS.CLONE_YAML];
 
-    return out.filter((item) => !forbiddenActions.includes(item.action));
+    return availableActions.filter((item) => !forbiddenActions.includes(item.action));
   }
 
   get systemBackups() {
@@ -44,27 +45,53 @@ export default class SystemRestoreModel extends LonghornModel {
   get _errorMessage() {
     const statusError = this.getStatusErrorMessage(() => (this.status?.state || '').toLowerCase() === 'error');
 
-    return statusError || this.findConditionMessage((c) => c.type === 'Error' && c.status === 'True');
+    return (
+      statusError || this.findConditionMessage((condition) => condition.type === 'Error' && condition.status === 'True')
+    );
   }
 
   get state() {
     if (this._errorMessage) return 'error';
 
-    const s = (this.status?.state || '').toLowerCase();
+    const currentState = (this.status?.state || '').toLowerCase();
 
-    if (s === 'completed') return 'active';
-    if (s === 'error') return 'error';
-    if (['restoring', 'pending'].includes(s)) return 'transitioning';
+    // Only define final states, everything else is transitioning
+    if (currentState === 'completed') return 'active';
+    if (currentState === 'error') return 'error';
+    if (!currentState) return 'unknown';
 
-    return this.metadata?.state?.name || 'unknown';
+    // All other non-empty states are transitioning
+    return 'transitioning';
   }
 
   get stateDescription() {
     return this._errorMessage;
   }
 
+  /**
+   * Convert state name from PascalCase/camelCase to human-readable format
+   * e.g., "InProgress" -> "In Progress"
+   */
+  formatStateName(stateName) {
+    if (!stateName) return '';
+
+    // Insert space before capital letters and uppercase first letter
+    return stateName
+      .replace(/([A-Z])/g, ' $1')
+      .trim()
+      .replace(/^./, (str) => str.toUpperCase());
+  }
+
   get stateDisplay() {
-    return this.getDisplayForState(this.state, SystemRestoreModel.STATE_MAP);
+    const state = this.state;
+    const rawState = this.status?.state || '';
+
+    if (state === 'active') return 'Completed';
+    if (state === 'error') return 'Error';
+    if (state === 'unknown') return 'Unknown';
+
+    // For transitioning state, use the raw state name with auto-formatting
+    return this.formatStateName(rawState);
   }
 
   get stateBackground() {

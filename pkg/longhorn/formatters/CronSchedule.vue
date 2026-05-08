@@ -14,7 +14,7 @@ export default {
       if (!this.value) return EMPTY_DISPLAY;
       try {
         return cronstrue.toString(this.value, { use24HourTimeFormat: true });
-      } catch (e) {
+      } catch {
         return this.value;
       }
     },

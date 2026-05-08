@@ -1,6 +1,4 @@
-<script setup>
-import { computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+<script>
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Tag from '@shell/components/Tag';
@@ -12,82 +10,87 @@ import { parseJsonObject } from '@longhorn/utils/json';
 
 dayjs.extend(relativeTime);
 
-const props = defineProps({
-  value: {
-    type: [Object, String],
-    default: () => ({}),
+export default {
+  name: 'VolumeNode',
+  components: {
+    Tag,
   },
-  row: {
-    type: Object,
-    default: () => ({}),
+  props: {
+    value: {
+      type: [Object, String],
+      default: () => ({}),
+    },
+    row: {
+      type: Object,
+      default: () => ({}),
+    },
   },
-});
+  computed: {
+    kubernetesStatus() {
+      return parseJsonObject(this.value);
+    },
+    podList() {
+      const value = this.kubernetesStatus || {};
 
-const route = useRoute();
-const router = useRouter();
+      if (Array.isArray(value.podList)) {
+        return value.podList;
+      }
 
-const kubernetesStatus = computed(() => {
-  return parseJsonObject(props.value);
-});
+      if (Array.isArray(value.workloadsStatus)) {
+        return value.workloadsStatus;
+      }
 
-const podList = computed(() => {
-  const value = kubernetesStatus.value || {};
+      return [];
+    },
+    podTooltip() {
+      if (!this.podList.length) {
+        return '';
+      }
 
-  if (Array.isArray(value.podList)) {
-    return value.podList;
-  }
+      const status = this.kubernetesStatus || {};
+      const latest = this.podList[0] || {};
+      const lastTimeUsed = status.lastPodRefAt ? dayjs(status.lastPodRefAt).fromNow() : EMPTY_DISPLAY;
+      const lastWorkloadName = latest.workloadName || EMPTY_DISPLAY;
+      const lastWorkloadType = latest.workloadType || EMPTY_DISPLAY;
+      const lastPodName = latest.podName || latest.name || EMPTY_DISPLAY;
 
-  if (Array.isArray(value.workloadsStatus)) {
-    return value.workloadsStatus;
-  }
+      return {
+        content: [
+          `<div>Last time used by Pod : ${lastTimeUsed}</div>`,
+          `<div>Last Workload Name : ${lastWorkloadName}</div>`,
+          `<div>Last Workload Type : ${lastWorkloadType}</div>`,
+          `<div>Last Pod Name : ${lastPodName}</div>`,
+        ].join(''),
+        html: true,
+      };
+    },
+    hostIds() {
+      const state = this.row?.status?.state;
 
-  return [];
-});
+      // Only show host ID when volume is attached
+      if (state !== 'attached') {
+        return [];
+      }
 
-const podTooltip = computed(() => {
-  if (!podList.value.length) {
-    return '';
-  }
+      const currentNodeId =
+        this.row?.spec?.nodeId || this.row?.spec?.nodeID || this.row?.status?.ownerID || this.row?.ownerID;
 
-  const status = kubernetesStatus.value || {};
-  const latest = podList.value[0] || {};
-  const lastTimeUsed = status.lastPodRefAt ? dayjs(status.lastPodRefAt).fromNow() : EMPTY_DISPLAY;
-  const lastWorkloadName = latest.workloadName || EMPTY_DISPLAY;
-  const lastWorkloadType = latest.workloadType || EMPTY_DISPLAY;
-  const lastPodName = latest.podName || latest.name || EMPTY_DISPLAY;
+      return currentNodeId ? [currentNodeId] : [];
+    },
+    clusterId() {
+      return this.$route.params.cluster;
+    },
+    basePath() {
+      return getBasePath(this.$router, this.clusterId);
+    },
+  },
+  methods: {
+    getNodeLink(hostId) {
+      if (!this.basePath || !hostId) return '';
 
-  return {
-    content: [
-      `<div>Last time used by Pod : ${lastTimeUsed}</div>`,
-      `<div>Last Workload Name : ${lastWorkloadName}</div>`,
-      `<div>Last Workload Type : ${lastWorkloadType}</div>`,
-      `<div>Last Pod Name : ${lastPodName}</div>`,
-    ].join(''),
-    html: true,
-  };
-});
-
-const hostIds = computed(() => {
-  const state = props.row?.status?.state;
-
-  // Only show host ID when volume is attached
-  if (state !== 'attached') {
-    return [];
-  }
-
-  const currentNodeId =
-    props.row?.spec?.nodeId || props.row?.spec?.nodeID || props.row?.status?.ownerID || props.row?.ownerID;
-
-  return currentNodeId ? [currentNodeId] : [];
-});
-
-const clusterId = computed(() => route.params.cluster);
-const basePath = computed(() => getBasePath(router, clusterId.value));
-
-const getNodeLink = (hostId) => {
-  if (!basePath.value || !hostId) return '';
-
-  return `${basePath.value}/${LONGHORN_RESOURCES.NODES}/${LONGHORN_NAMESPACE}/${hostId}`;
+      return `${this.basePath}/${LONGHORN_RESOURCES.NODES}/${LONGHORN_NAMESPACE}/${hostId}`;
+    },
+  },
 };
 </script>
 

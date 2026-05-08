@@ -1,102 +1,101 @@
-<script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useStore } from 'vuex';
-import { useRouter, useRoute } from 'vue-router';
+<script>
 import { MESSAGE, NAME, OBJECT, REASON, EVENT_TYPE } from '@shell/config/table-headers';
 import { EVENT } from '@shell/config/types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import { STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 
-const reason = {
-  ...REASON,
-  ...{ canBeVariable: true },
-};
-
-const eventHeaders = [
-  reason,
-  OBJECT,
-  MESSAGE,
-  NAME,
-  {
-    name: 'date',
-    label: 'Date',
-    labelKey: 'clusterIndexPage.sections.events.date.label',
-    value: 'timestamp',
-    sort: 'timestamp:desc',
-    formatter: 'Date',
-    width: 220,
-    defaultSort: true,
+export default {
+  name: 'Events',
+  components: {
+    PaginatedResourceTable,
   },
-];
-
-const store = useStore();
-const router = useRouter();
-const route = useRoute();
-
-const schema = ref(null);
-const paginationHeaders = ref(null);
-const dismissRouteHandler = ref(() => {
-  // Handler for dismiss route
-});
-
-onMounted(() => {
-  const schemaObj = store.getters['cluster/schemaFor'](EVENT);
-
-  const paginationHeadersObj = schemaObj
-    ? [
+  data() {
+    return {
+      schema: null,
+      paginationHeaders: null,
+      dismissRouteHandler: null,
+      reason: {
+        ...REASON,
+        ...{ canBeVariable: true },
+      },
+      eventHeaders: [
+        REASON,
+        OBJECT,
+        MESSAGE,
+        NAME,
         {
-          ...headerFromSchemaColString('Last Seen', schemaObj, store.getters, true),
+          name: 'date',
+          label: 'Date',
+          labelKey: 'clusterIndexPage.sections.events.date.label',
+          value: 'timestamp',
+          sort: 'timestamp:desc',
+          formatter: 'Date',
+          width: 220,
           defaultSort: true,
         },
-        headerFromSchemaColString('First Seen', schemaObj, store.getters, true),
-        headerFromSchemaColString('Count', schemaObj, store.getters, true),
-        {
-          ...STEVE_NAME_COL,
-          defaultSort: false,
-        },
-        OBJECT,
-        EVENT_TYPE,
-        reason,
-        headerFromSchemaColString('Source', schemaObj, store.getters, true),
-        MESSAGE,
-      ]
-    : [];
+      ],
+    };
+  },
+  mounted() {
+    const schemaObj = this.$store.getters['cluster/schemaFor'](EVENT);
 
-  schema.value = schemaObj;
-  paginationHeaders.value = paginationHeadersObj;
+    const paginationHeadersObj = schemaObj
+      ? [
+          {
+            ...headerFromSchemaColString('Last Seen', schemaObj, this.$store.getters, true),
+            defaultSort: true,
+          },
+          headerFromSchemaColString('First Seen', schemaObj, this.$store.getters, true),
+          headerFromSchemaColString('Count', schemaObj, this.$store.getters, true),
+          {
+            ...STEVE_NAME_COL,
+            defaultSort: false,
+          },
+          OBJECT,
+          EVENT_TYPE,
+          this.reason,
+          headerFromSchemaColString('Source', schemaObj, this.$store.getters, true),
+          MESSAGE,
+        ]
+      : [];
 
-  dismissRouteHandler.value = router.beforeEach((to, from, next) => onRouteChange(to, from, next));
-});
+    this.schema = schemaObj;
+    this.paginationHeaders = paginationHeadersObj;
 
-onBeforeUnmount(() => {
-  if (dismissRouteHandler.value) dismissRouteHandler.value();
-});
-
-async function onRouteChange(to, from, next) {
-  if (route.name !== to.name) {
-    await store.dispatch('cluster/forgetType', EVENT);
-  }
-  next();
-}
-
-function onApiFilter(pagination) {
-  if (!pagination.projectsOrNamespaces || !pagination.projectsOrNamespaces[0]) {
-    pagination.projectsOrNamespaces = [{ fields: [] }];
-  }
-
-  pagination.projectsOrNamespaces[0].fields = [
-    {
-      equals: true,
-      exact: true,
-      exists: false,
-      field: undefined,
-      value: 'longhorn-system',
+    this.dismissRouteHandler = this.$router.beforeEach((to, from, next) => this.onRouteChange(to, from, next));
+  },
+  beforeUnmount() {
+    if (this.dismissRouteHandler) {
+      this.dismissRouteHandler();
+    }
+  },
+  methods: {
+    async onRouteChange(to, from, next) {
+      if (this.$route.name !== to.name) {
+        await this.$store.dispatch('cluster/forgetType', EVENT);
+      }
+      next();
     },
-  ];
+    onApiFilter(pagination) {
+      if (!pagination.projectsOrNamespaces || !pagination.projectsOrNamespaces[0]) {
+        pagination.projectsOrNamespaces = [{ fields: [] }];
+      }
 
-  return pagination;
-}
+      pagination.projectsOrNamespaces[0].fields = [
+        {
+          equals: true,
+          exact: true,
+          exists: false,
+          field: undefined,
+          value: 'longhorn-system',
+        },
+      ];
+
+      return pagination;
+    },
+  },
+};
 </script>
 
 <template>

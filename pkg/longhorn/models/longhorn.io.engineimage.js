@@ -1,19 +1,20 @@
 import LonghornModel from './longhorn';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
+import { BADGE_COLOR } from '@longhorn/types/badge';
 
 export default class EngineImageModel extends LonghornModel {
   // State mapping specific to EngineImage
   static get STATE_MAP() {
     return {
-      active: { display: 'Ready', background: 'bg-success' },
-      error: { display: 'Error', background: 'bg-error' },
-      transitioning: { display: 'Deploying', background: 'bg-warning' },
+      active: { display: 'Ready', background: BADGE_COLOR.SUCCESS },
+      error: { display: 'Error', background: BADGE_COLOR.ERROR },
+      transitioning: { display: 'Deploying', background: BADGE_COLOR.WARNING },
     };
   }
 
   get availableActions() {
-    const out = super._availableActions
+    const availableActions = super._availableActions
       .filter((action) => ![AVAILABLE_ACTIONS.CLONE].includes(action.action))
       .map((action) => {
         if (action.action === AVAILABLE_ACTIONS.DELETE) {
@@ -23,7 +24,7 @@ export default class EngineImageModel extends LonghornModel {
         return action;
       });
 
-    return out;
+    return availableActions;
   }
 
   get image() {
@@ -57,19 +58,19 @@ export default class EngineImageModel extends LonghornModel {
   }
 
   get stateDescription() {
-    return this.findConditionMessage((c) => c.status?.toLowerCase() === 'false');
+    return this.findConditionMessage((condition) => condition.status?.toLowerCase() === 'false');
   }
 
   get state() {
-    const failedCond = this.stateDescription;
+    const failedConditionMessage = this.stateDescription;
 
-    if (failedCond) return 'error';
+    if (failedConditionMessage) return 'error';
 
-    const s = (this.status?.state || '').toLowerCase();
+    const currentState = (this.status?.state || '').toLowerCase();
 
-    if (s === 'ready') return 'active';
-    if (s === 'error') return 'error';
-    if (s === 'deploying') return 'transitioning';
+    if (currentState === 'ready') return 'active';
+    if (currentState === 'error') return 'error';
+    if (currentState === 'deploying') return 'transitioning';
 
     return this.metadata?.state?.name || 'unknown';
   }

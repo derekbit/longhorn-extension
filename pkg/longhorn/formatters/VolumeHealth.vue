@@ -2,8 +2,9 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { BadgeState } from '@components/BadgeState';
-import { useFetch } from '@shell/components/Resource/Detail/FetchLoader/composables';
+import { useI18n } from '@shell/composables/useI18n';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
+import { filterReplicasByVolumeName, getReplicaHostIds, shouldShowDataLocalityWarning } from '@longhorn/utils/volume';
 
 const VOL_STATE = {
   ATTACHED: 'attached',
@@ -22,30 +23,104 @@ const props = defineProps({
 });
 
 const store = useStore();
+const { t } = useI18n(store);
 
 const volumeStatus = computed(() => props.row.volumeStatus || props.value);
 const state = computed(() => props.row.state);
 const robustness = computed(() => props.row.robustness);
 const isFaulted = computed(() => props.row.isFaulted);
-const readyStatus = computed(() => props.row.readyStatus);
+const readyStatus = computed(() => props.row.readyStatus || { ready: true, msg: '' });
 
 const status = computed(() => props.row.status || {});
 const spec = computed(() => props.row.spec || {});
 const replicas = computed(() => status.value.replicas || props.row.replicas || []);
+const volumeNameCandidates = computed(() => {
+  const id = String(props.row.id || '');
+  const candidates = [props.row.metadata?.name, props.row.name, id].filter(Boolean);
+
+  return [...new Set(candidates)];
+});
 
 const isV2 = computed(() => spec.value.dataEngine === 'v2');
 const isEncrypted = computed(() => !!(spec.value.encrypted || status.value.encrypted || status.value.isEncrypted));
 const isStandby = computed(() => !!(status.value.isStandby ?? spec.value.standby ?? props.row.standby));
+const dataLocality = computed(() => String(props.row.dataLocality || spec.value.dataLocality || '').toLowerCase());
+const attachedNode = computed(() => {
+  return (
+    props.row.controllers?.[0]?.hostId ||
+    props.row.controllers?.[0]?.hostID ||
+    props.row.status?.currentNodeID ||
+    props.row.status?.currentNodeId ||
+    ''
+  );
+});
+const replicaHostsFromRow = computed(() => {
+  return getReplicaHostIds(replicas.value);
+});
+const replicaHostsFromStore = computed(() => {
+  const inStore = store.getters['currentProduct']?.inStore;
+
+  if (!inStore || !volumeNameCandidates.value.length) {
+    return [];
+  }
+
+  const allReplicas = store.getters[`${inStore}/all`]?.(LONGHORN_RESOURCES.REPLICAS) || [];
+  const matchedReplicas = filterReplicasByVolumeName(allReplicas, volumeNameCandidates.value);
+
+  return getReplicaHostIds(matchedReplicas);
+});
+const effectiveReplicaHosts = computed(() => {
+  if (replicaHostsFromRow.value.length) {
+    return replicaHostsFromRow.value;
+  }
+
+  return replicaHostsFromStore.value;
+});
+const showDataLocalityWarning = computed(() => {
+  return shouldShowDataLocalityWarning({
+    dataLocality: dataLocality.value,
+    state: state.value,
+    attachedNode: attachedNode.value,
+    replicaHosts: effectiveReplicaHosts.value,
+  });
+});
+
+const notReadyTooltip = computed(() => {
+  if (!readyStatus.value.msg) {
+    return t('longhorn.volume.tooltip.notReady');
+  }
+
+  return `${t('longhorn.volume.tooltip.notReady')}<br/>${readyStatus.value.msg}`;
+});
+
+const haTooltip = computed(() => {
+  if (haType.value === 'danger') {
+    return t('longhorn.volume.tooltip.replicasShareSingleNode');
+  }
+
+  return t('longhorn.volume.tooltip.replicasShareNodes');
+});
+
+const engineUpgradeTooltip = computed(() => {
+  return t('longhorn.volume.tooltip.engineUpgradeAvailable', {
+    version: engineUpgrade.value?.latest || '',
+  });
+});
+
+const standbyTooltip = computed(() => t('longhorn.volume.tooltip.disasterRecoveryVolume'));
+const encryptedTooltip = computed(() => t('longhorn.volume.tooltip.encryptedVolume'));
 
 // HA Logic
 const nodeAnalysis = computed(() => {
-  const activeReplicas = replicas.value.filter((r) => r.running && r.mode?.toLowerCase() !== 'err');
-  const hosts = new Set(activeReplicas.map((r) => r.hostId || r.spec?.nodeID || r.spec?.nodeId).filter(Boolean));
+  const activeReplicas = replicas.value.filter((replica) => replica.running && replica.mode?.toLowerCase() !== 'err');
+  const hosts = new Set(
+    activeReplicas.map((replica) => replica.hostId || replica.spec?.nodeID || replica.spec?.nodeId).filter(Boolean)
+  );
 
   return {
     uniqueNodes: hosts.size,
     totalActive: activeReplicas.length,
-    hasNoHost: activeReplicas.some((r) => !(r.hostId || r.spec?.nodeID)),
+    hasNoHost: activeReplicas.some((replica) => !(replica.hostId || replica.spec?.nodeID)),
   };
 });
 
@@ -60,10 +135,8 @@ const haType = computed(() => {
 // Upgrade Logic
 const engineUpgrade = computed(() => {
   const inStore = store.getters['currentProduct']?.inStore;
-  const latest = store.getters[`${inStore}/byId`](
-    LONGHORN_RESOURCES.SETTINGS,
-    LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE
-  )?.value;
+  const byIdGetter = inStore ? store.getters[`${inStore}/byId`] : null;
+  const latest = byIdGetter?.(LONGHORN_RESOURCES.SETTINGS, LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE)?.value;
   const current = status.value.currentImage;
 
   if (!latest || isV2.value || current === latest) return null;
@@ -75,9 +148,11 @@ const engineUpgrade = computed(() => {
   return isSafe ? { latest } : null;
 });
 
-const showLoading = computed(
-  () => state.value.endsWith('ing') || replicas.value.some((r) => r.mode?.toLowerCase() === 'wo')
-);
+const showLoading = computed(() => {
+  return (
+    String(state.value || '').endsWith('ing') || replicas.value.some((replica) => replica.mode?.toLowerCase() === 'wo')
+  );
+});
 
 // Progress Logic
 const getProgress = (type) => {
@@ -89,17 +164,6 @@ const getProgress = (type) => {
 };
 
 const progressBars = computed(() => [getProgress('restore'), getProgress('rebuild')].filter(Boolean));
-
-useFetch(async () => {
-  const inStore = store.getters['currentProduct']?.inStore;
-
-  if (inStore) {
-    await store.dispatch(`${inStore}/find`, {
-      type: LONGHORN_RESOURCES.SETTINGS,
-      id: LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE,
-    });
-  }
-});
 </script>
 
 <template>
@@ -114,29 +178,26 @@ useFetch(async () => {
     </div>
 
     <div class="state-content">
-      <i
-        v-if="!readyStatus.ready"
-        v-clean-tooltip="`Not Ready<br/>${readyStatus.msg}`"
-        class="icon icon-error icon-fw text-error"
-      />
+      <i v-if="!readyStatus.ready" v-clean-tooltip="notReadyTooltip" class="icon icon-error icon-fw text-error" />
 
       <BadgeState :value="volumeStatus" />
 
       <i
         v-if="haType"
-        v-clean-tooltip="haType === 'danger' ? 'All replicas share a node' : 'Replicas share nodes'"
+        v-clean-tooltip="haTooltip"
         :class="['icon icon-warning icon-fw', haType === 'danger' ? 'text-error' : 'text-warning']"
       />
 
       <div class="meta-icons">
-        <i v-if="showLoading" class="icon icon-spinner icon-spin text-muted" />
         <i
-          v-if="engineUpgrade"
-          v-clean-tooltip="`Upgrade available: ${engineUpgrade.latest}`"
-          class="icon icon-upgrade-alt text-muted"
+          v-if="showDataLocalityWarning"
+          v-clean-tooltip="t('longhorn.volume.tooltip.dataLocalityNotMet')"
+          class="icon icon-warning text-warning"
         />
-        <i v-if="isStandby" v-clean-tooltip="'Disaster Recovery Volume'" class="icon icon-archive text-muted" />
-        <i v-if="isEncrypted" v-clean-tooltip="'Encrypted Volume'" class="icon icon-lock text-muted" />
+        <i v-if="showLoading" class="icon icon-spinner icon-spin text-muted" />
+        <i v-if="engineUpgrade" v-clean-tooltip="engineUpgradeTooltip" class="icon icon-upgrade-alt text-muted" />
+        <i v-if="isStandby" v-clean-tooltip="standbyTooltip" class="icon icon-archive text-muted" />
+        <i v-if="isEncrypted" v-clean-tooltip="encryptedTooltip" class="icon icon-lock text-muted" />
       </div>
     </div>
   </div>

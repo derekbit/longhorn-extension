@@ -31,7 +31,7 @@ export default {
         version: '',
         systemBackup: '',
       },
-      fvFormRuleSets: [{ path: 'name', rules: ['required'] }],
+      fvFormRuleSets: [{ path: 'value.name', rules: ['required'] }],
     };
   },
 
@@ -52,10 +52,10 @@ export default {
       this.$emit('close');
     },
 
-    restore() {
-      // TODO: Call API to restore system backup
-      // await this.resource.doAction('restore', this.value);
-
+    async restore(buttonDone) {
+      // TODO: Implement system restore via Longhorn manager API.
+      // This action requires calling the /v1/systemrestores endpoint
+      buttonDone(true);
       this.close();
     },
   },
@@ -65,24 +65,33 @@ export default {
 <template>
   <Card :show-highlight-border="false">
     <template #title>
-      <h4>Restore System Backup</h4>
+      <h4>{{ t('longhorn.systemBackup.dialog.restore.title') }}</h4>
     </template>
 
     <template #body>
       <LabeledInput
         v-model:value="value.name"
         class="mt-10 mb-10"
-        label="Name"
-        :rules="fvGetAndReportPathRules('name')"
+        :label="t('generic.name')"
+        :rules="fvGetAndReportPathRules('value.name')"
         required
       />
-      <LabeledInput v-model:value="value.version" class="mb-15" label="Version" disabled />
-      <LabeledInput v-model:value="value.systemBackup" label="System Backup" disabled />
+      <LabeledInput
+        v-model:value="value.version"
+        class="mb-15"
+        :label="t('longhorn.systemBackup.table.header.version')"
+        disabled
+      />
+      <LabeledInput
+        v-model:value="value.systemBackup"
+        :label="t('longhorn.systemBackup.dialog.restore.systemBackup')"
+        disabled
+      />
     </template>
 
     <template #actions>
       <div class="actions-row">
-        <button class="btn role-secondary mr-10" @click="close">Cancel</button>
+        <button class="btn role-secondary mr-10" @click="close">{{ t('generic.cancel') }}</button>
         <AsyncButton type="submit" class="btn bg-primary" :disabled="!fvFormIsValid" @click="restore" />
       </div>
     </template>

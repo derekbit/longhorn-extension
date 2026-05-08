@@ -1,11 +1,13 @@
-export const REPLICA_STATUS_MAP = {
-  healthy: { key: 'healthy', color: 'bg-info' },
-  rebuilding: { key: 'rebuilding', color: 'bg-warning' },
-  err: { key: 'err', color: 'bg-error' },
-  failed: { key: 'failed', color: 'bg-error' },
-  stopped: { key: 'stopped', color: 'bg-darker' },
-  unknown: { key: 'unknown', color: 'bg-darker' },
-};
+import { BADGE_COLOR } from '@longhorn/types/badge';
+
+export const REPLICA_STATUS_MAP = Object.freeze({
+  healthy: { key: 'healthy', color: BADGE_COLOR.INFO },
+  rebuilding: { key: 'rebuilding', color: BADGE_COLOR.WARNING },
+  err: { key: 'err', color: BADGE_COLOR.ERROR },
+  failed: { key: 'failed', color: BADGE_COLOR.ERROR },
+  stopped: { key: 'stopped', color: BADGE_COLOR.DARKER },
+  unknown: { key: 'unknown', color: BADGE_COLOR.DARKER },
+});
 
 export function getReplicaNodeStatus({ running, mode, failedAt }) {
   if (running) {

@@ -6,8 +6,8 @@ const GiB = 1024 * 1024 * 1024;
  * @param bytes - The raw number of bytes.
  * @returns The formatted GiB value as a number.
  */
-export function bytesToGi(bytes) {
-  const value = bytes / GiB;
+export function bytesToGi(bytes: number | string): number {
+  const value = Number(bytes) / GiB;
 
   if (value === 0) {
     return 0;
