@@ -1,0 +1,2 @@
+"use strict";(("undefined"!==typeof self?self:this)["webpackChunklonghorn_0_1_0"]=("undefined"!==typeof self?self:this)["webpackChunklonghorn_0_1_0"]||[]).push([[303],{66303:function(e,n,o){o.r(n),o.d(n,{default:function(){return f}});var t=o(9274);function r(e,n,o,r,s,u){const c=(0,t.resolveComponent)("ResourceDetail");return(0,t.openBlock)(),(0,t.createBlock)(c)}var s=o(62709),u={name:"ClusterResourcedId",components:{ResourceDetail:s.A}},c=o(47433);const l=(0,c.A)(u,[["render",r]]);var f=l}}]);
+//# sourceMappingURL=longhorn-0.1.0.umd.min.303.js.map
