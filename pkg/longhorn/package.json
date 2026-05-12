@@ -1,17 +1,19 @@
 {
   "name": "longhorn",
-  "description": "longhorn plugin",
+  "description": "Rancher UI Extension for Longhorn",
   "version": "0.1.0",
   "private": false,
   "rancher": {
     "annotations": {
-      "catalog.cattle.io/rancher-version": ">= 2.10.0",
+      "catalog.cattle.io/rancher-version": ">= v2.14.0",
+      "catalog.cattle.io/display-name": "Longhorn",
       "catalog.cattle.io/ui-extensions-version": ">= 3.0.0 < 4.0.0"
     }
   },
+  "icon": "https://raw.githubusercontent.com/houhoucoop/longhorn-extension/main/pkg/longhorn/icon.png",
   "scripts": {},
   "engines": {
-    "node": ">=16"
+    "node": ">=24.0.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~5.0.0",

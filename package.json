@@ -29,7 +29,7 @@
     "format:check": "prettier --check \"**/*.{js,ts,vue,json,md}\"",
     "lint": "eslint \"pkg/longhorn/**/*.{js,ts,vue}\"",
     "lint:fix": "eslint \"pkg/longhorn/**/*.{js,ts,vue}\" --fix",
-    "type-check": "vue-tsc --noEmit",
+    "type-check": "./scripts/type-check.sh",
     "prepare": "husky"
   },
   "lint-staged": {
