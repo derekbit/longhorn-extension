@@ -10,9 +10,8 @@ import {
   VOLUME_CONDITION_TYPE,
   VOLUME_DEFAULT_SNAPSHOT_MAX_COUNT,
 } from '@longhorn/types/volume';
-import { BADGE_COLOR } from '@longhorn/types/badge';
+import { BADGE_COLOR, EMPTY_DISPLAY } from '@longhorn/types/general';
 import { parseVolumeDataSource, getFrontendDisplayMap } from '@longhorn/utils/volume';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
 import dayjs from 'dayjs';
 
 const CONDITION_BADGE = {

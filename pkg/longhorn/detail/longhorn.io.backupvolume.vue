@@ -15,11 +15,9 @@ import { useI18n } from '@shell/composables/useI18n';
 import { _VIEW } from '@shell/config/query-params';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
-import { BADGE_COLOR } from '@longhorn/types/badge';
-import { getBadgeColor } from '@longhorn/utils/badge';
+import { EMPTY_DISPLAY, BADGE_COLOR } from '@longhorn/types/general';
+import { getBadgeColor, resolveKubernetesStatus } from '@longhorn/utils/general';
 import { getBackupUrl } from '@longhorn/utils/backup';
-import { resolveKubernetesStatus } from '@longhorn/utils/json';
 import { formatSi } from '@shell/utils/units';
 
 const props = defineProps({

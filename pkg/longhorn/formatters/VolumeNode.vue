@@ -2,11 +2,11 @@
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Tag from '@shell/components/Tag';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
+import { EMPTY_DISPLAY } from '@longhorn/types/general';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
 import { getBasePath } from '@longhorn/utils/route';
-import { parseJsonObject } from '@longhorn/utils/json';
+import { parseJsonObject } from '@longhorn/utils/general';
 
 dayjs.extend(relativeTime);
 

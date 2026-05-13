@@ -1,7 +1,7 @@
 import LonghornModel from './longhorn';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
-import { BADGE_COLOR } from '@longhorn/types/badge';
+import { BADGE_COLOR } from '@longhorn/types/general';
 
 export default class SystemRestoreModel extends LonghornModel {
   // State mapping specific to SystemRestore
@@ -14,10 +14,10 @@ export default class SystemRestoreModel extends LonghornModel {
   }
 
   get availableActions() {
-    const availableActions = super._availableActions;
+    const availableActions = super._availableActions || [];
     const forbiddenActions = [AVAILABLE_ACTIONS.CLONE_YAML];
 
-    return availableActions.filter((item) => !forbiddenActions.includes(item.action));
+    return this.sanitizeAvailableActions(availableActions.filter((item) => !forbiddenActions.includes(item.action)));
   }
 
   get systemBackups() {

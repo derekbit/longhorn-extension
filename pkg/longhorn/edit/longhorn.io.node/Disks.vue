@@ -9,8 +9,8 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Banner from '@components/Banner/Banner';
 import { RadioGroup } from '@components/Form/Radio';
 import { BadgeState } from '@components/BadgeState';
-import { bytesToGi } from '@longhorn/utils/formatter';
-import { GiB_UNIT } from '@longhorn/types/units';
+import { bytesToGi } from '@longhorn/utils/general';
+import { GiB_UNIT } from '@longhorn/types/general';
 
 export default {
   components: {
@@ -76,13 +76,23 @@ export default {
 
       return !isScheduled && !schedulingAllowed;
     },
+    removeDiskTooltip(disk) {
+      if (this.mode === _VIEW) {
+        return '';
+      }
+
+      if (this.canBeRemoved(disk)) {
+        return '';
+      }
+
+      return this.t('longhorn.node.form.removeDiskMessage');
+    },
   },
 };
 </script>
 
 <template>
   <div>
-    <Banner color="info" label-key="longhorn.node.form.removeDiskMessage" />
     <ArrayListGrouped
       :value="value.disks"
       :mode="mode"
@@ -91,6 +101,22 @@ export default {
       @add="$emit('add')"
       @remove="$emit('remove', $event.row.value.id)"
     >
+      <template #remove-button="scope">
+        <button
+          v-if="canBeRemoved(scope.row)"
+          type="button"
+          class="btn role-link close btn-sm"
+          :data-testid="`remove-item-${scope.i}`"
+          @click="scope.remove"
+        >
+          <i class="icon icon-x" />
+        </button>
+        <span v-else-if="mode !== _VIEW" v-clean-tooltip="removeDiskTooltip(scope.row)">
+          <i class="icon icon-x text-muted" />
+        </span>
+        <span v-else />
+      </template>
+
       <template #default="{ row: { value: disk } }">
         <div v-if="disk && value.spec.disks[disk.id]" class="disk-container">
           <div class="row mb-10 conditions">

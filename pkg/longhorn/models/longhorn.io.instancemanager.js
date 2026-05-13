@@ -1,6 +1,6 @@
 import LonghornModel from './longhorn';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
-import { BADGE_COLOR } from '@longhorn/types/badge';
+import { BADGE_COLOR } from '@longhorn/types/general';
 
 const CURRENT_STATE_TO_STATE = {
   running: 'active',
@@ -23,10 +23,10 @@ export default class InstanceManagerModel extends LonghornModel {
   }
 
   get availableActions() {
-    const availableActions = super._availableActions;
+    const availableActions = super._availableActions || [];
     const forbiddenActions = [AVAILABLE_ACTIONS.CLONE_YAML];
 
-    return availableActions.filter((item) => !forbiddenActions.includes(item.action));
+    return this.sanitizeAvailableActions(availableActions.filter((item) => !forbiddenActions.includes(item.action)));
   }
 
   get state() {

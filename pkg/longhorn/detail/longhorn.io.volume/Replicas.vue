@@ -2,8 +2,7 @@
 import SortableTable from '@shell/components/SortableTable';
 import { BadgeState } from '@components/BadgeState';
 import { getReplicaSyncStatus } from '@longhorn/utils/replica';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
-import { BADGE_COLOR } from '@longhorn/types/badge';
+import { EMPTY_DISPLAY, BADGE_COLOR } from '@longhorn/types/general';
 
 export default {
   name: 'VolumeReplicas',

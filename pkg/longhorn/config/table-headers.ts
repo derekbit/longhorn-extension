@@ -563,7 +563,8 @@ export const ORPHANS_HEADER = [
   STATE,
   {
     ...NAME_COL,
-    formatter: 'OrphanName',
+    width: 160,
+    canBeVariable: false,
   },
   {
     name: 'node',
@@ -572,14 +573,6 @@ export const ORPHANS_HEADER = [
     sort: ['$.spec.nodeID'],
     search: '$.spec.nodeID',
     formatter: 'NodeName',
-  },
-  {
-    name: 'type',
-    labelKey: 'longhorn.orphans.table.header.type',
-    value: '$.spec.orphanType',
-    sort: ['$.spec.orphanType'],
-    search: '$.spec.orphanType',
-    dashIfEmpty: true,
   },
   {
     name: 'dataName',
@@ -630,8 +623,22 @@ export const ORPHANS_HEADER = [
     dashIfEmpty: true,
     align: 'center',
   },
-  AGE,
+  {
+    ...AGE,
+    width: 80,
+  },
 ];
+
+const ORPHAN_REPLICA_HIDDEN_COLUMNS = ['instanceName', 'instanceManager', 'dataEngine'];
+const ORPHAN_INSTANCE_HIDDEN_COLUMNS = ['dataName', 'diskName', 'diskPath'];
+
+export const ORPHANS_REPLICA_HEADER = ORPHANS_HEADER.filter(
+  (header) => !ORPHAN_REPLICA_HIDDEN_COLUMNS.includes(header?.name)
+);
+
+export const ORPHANS_INSTANCE_HEADER = ORPHANS_HEADER.filter(
+  (header) => !ORPHAN_INSTANCE_HIDDEN_COLUMNS.includes(header?.name)
+);
 
 export const BACKING_IMAGE_BACKUPS_HEADER = [
   STATE,

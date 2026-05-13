@@ -16,6 +16,8 @@ export const LONGHORN_PAGES = Object.freeze({
   SETTINGS: 'Settings',
   INSTANCE_MANAGERS: 'Instance Managers',
   ORPHANS: 'Orphans Resources',
+  ORPHANS_REPLICA: 'Orphan Replicas',
+  ORPHANS_INSTANCE: 'Orphan Instances',
   BACKING_IMAGES: 'Backing Images',
   BACKING_IMAGE_BACKUPS: 'Backup Backing Images',
 });

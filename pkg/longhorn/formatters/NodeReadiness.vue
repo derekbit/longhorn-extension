@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
+import { EMPTY_DISPLAY } from '@longhorn/types/general';
 
 const props = defineProps({
   value: {

@@ -1,7 +1,7 @@
 import LonghornModel from './longhorn';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
-import { BACKING_IMAGE_CREATE_SOURCE_TYPE_OPTIONS } from '@longhorn/types/backing-image';
-import { BADGE_COLOR } from '@longhorn/types/badge';
+import { BACKING_IMAGE_CREATE_SOURCE_TYPE_OPTIONS } from '@longhorn/types/backingimage';
+import { BADGE_COLOR } from '@longhorn/types/general';
 
 export default class BackingImageModel extends LonghornModel {
   get availableActions() {
@@ -46,7 +46,7 @@ export default class BackingImageModel extends LonghornModel {
       actionsWithModified.unshift(downloadAction, backupAction);
     }
 
-    return actionsWithModified;
+    return this.sanitizeAvailableActions(actionsWithModified);
   }
 
   get canClone() {

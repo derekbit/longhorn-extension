@@ -3,7 +3,7 @@ import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
 
 export default class SystemBackupModel extends LonghornModel {
   get availableActions() {
-    const availableActions = super._availableActions;
+    const availableActions = super._availableActions || [];
     const forbiddenActions = [
       AVAILABLE_ACTIONS.EDIT,
       AVAILABLE_ACTIONS.CLONE,
@@ -26,7 +26,7 @@ export default class SystemBackupModel extends LonghornModel {
       filtered.unshift(restoreAction);
     }
 
-    return filtered;
+    return this.sanitizeAvailableActions(filtered);
   }
 
   restore(resources = this) {

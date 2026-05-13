@@ -11,7 +11,7 @@ import {
   getRecurringJobName,
   getRecurringJobSelectorsFromLabels,
 } from '@longhorn/utils/recurringjob';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
+import { EMPTY_DISPLAY } from '@longhorn/types/general';
 
 const ACTION_EDIT = 'edit';
 const ACTION_DELETE = 'delete';

@@ -1,5 +1,5 @@
 import LonghornModel from './longhorn';
-import { resolveKubernetesStatus } from '@longhorn/utils/json';
+import { resolveKubernetesStatus } from '@longhorn/utils/general';
 
 const CREATE_DR_VOLUME_ACTION = 'createDisasterRecoveryVolume';
 
@@ -22,7 +22,7 @@ export default class BackupVolumeModel extends LonghornModel {
       out.unshift(restoreAction);
     }
 
-    return out;
+    return this.sanitizeAvailableActions(out);
   }
 
   get volumeName() {

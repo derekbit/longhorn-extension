@@ -8,8 +8,8 @@ import { allHash } from '@shell/utils/promise';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 import { VOLUME_STATE, VOLUME_STATE_ORDER } from '@longhorn/types/volume';
 import { getVolumeStateQueryValue } from '@longhorn/utils/volume';
-import { bytesToGi } from '@longhorn/utils/formatter';
-import { GiB_UNIT } from '@longhorn/types/units';
+import { bytesToGi } from '@longhorn/utils/general';
+import { GiB_UNIT } from '@longhorn/types/general';
 
 const NODE_STATUS = {
   DOWN: 'Down',

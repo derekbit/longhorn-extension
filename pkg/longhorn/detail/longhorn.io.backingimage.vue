@@ -12,13 +12,13 @@ import { useI18n } from '@shell/composables/useI18n';
 import { formatSi } from '@shell/utils/units';
 import SortableTable from '@shell/components/SortableTable';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
-import { BADGE_COLOR } from '@longhorn/types/badge';
+import { BADGE_COLOR } from '@longhorn/types/general';
 import {
   BACKING_IMAGE_ENCRYPTION_TYPE_OPTIONS,
   BACKING_IMAGE_EXPORT_TYPE_OPTIONS,
   BACKING_IMAGE_SOURCE_TYPE,
   BACKING_IMAGE_SOURCE_TYPE_OPTIONS,
-} from '@longhorn/types/backing-image';
+} from '@longhorn/types/backingimage';
 
 const props = defineProps({
   value: {

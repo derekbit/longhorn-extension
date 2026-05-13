@@ -1,5 +1,6 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { BADGE_COLOR } from '@longhorn/types/badge';
+import { BADGE_COLOR } from '@longhorn/types/general';
+import { sanitizeAvailableActions } from '@longhorn/utils/general';
 
 // Standard state display and color mapping for all resources
 const DEFAULT_STATE_MAP = {
@@ -19,6 +20,10 @@ const DEFAULT_STATE_MAP = {
 };
 
 export default class LonghornModel extends SteveModel {
+  sanitizeAvailableActions(actions = []) {
+    return sanitizeAvailableActions(actions);
+  }
+
   normalizeStateMessage(message) {
     if (message === null || message === undefined) {
       return '';

@@ -3,7 +3,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import { set } from '@shell/utils/object';
-import { GiB_UNIT, MiB_UNIT } from '@longhorn/types/units';
+import { GiB_UNIT, MiB_UNIT } from '@longhorn/types/general';
 import { _CREATE } from '@shell/config/query-params';
 
 export default {

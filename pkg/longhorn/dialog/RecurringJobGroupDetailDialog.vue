@@ -8,7 +8,7 @@ import {
   getRecurringJobGroups,
   getRecurringJobName,
 } from '@longhorn/utils/recurringjob';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
+import { EMPTY_DISPLAY } from '@longhorn/types/general';
 
 export default {
   name: 'RecurringJobGroupDetailDialog',

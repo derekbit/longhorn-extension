@@ -1,4 +1,4 @@
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
+import { EMPTY_DISPLAY } from '@longhorn/types/general';
 
 export function asNumber(value: unknown): number {
   return Number(value ?? 0);

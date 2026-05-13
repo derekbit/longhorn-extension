@@ -1,6 +1,6 @@
 import cronstrue from 'cronstrue';
 import { LONGHORN_LABELS } from '@longhorn/types/resources';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
+import { EMPTY_DISPLAY } from '@longhorn/types/general';
 import {
   PARAM_KEYS,
   RECURRING_JOB_FORCE_CREATE_SUFFIX,

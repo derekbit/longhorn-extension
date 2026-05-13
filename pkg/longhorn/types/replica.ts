@@ -1,4 +1,4 @@
-import { BADGE_COLOR } from '@longhorn/types/badge';
+import { BADGE_COLOR } from '@longhorn/types/general';
 
 export const REPLICA_STATUS_MAP = Object.freeze({
   healthy: { key: 'healthy', color: BADGE_COLOR.INFO },

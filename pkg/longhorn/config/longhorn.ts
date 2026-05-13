@@ -33,7 +33,8 @@ const NAV_BACKUP_AND_RESTORE = [
 
 const NAV_ADVANCED = [
   { type: LONGHORN_RESOURCES.BACKING_IMAGES, weight: 400 },
-  { type: LONGHORN_RESOURCES.ORPHANS, weight: 380 },
+  { type: LONGHORN_PAGES.ORPHANS_REPLICA, weight: 380 },
+  { type: LONGHORN_PAGES.ORPHANS_INSTANCE, weight: 370 },
   { type: LONGHORN_RESOURCES.ENGINE_IMAGES, weight: 360 },
   { type: LONGHORN_RESOURCES.INSTANCE_MANAGERS, weight: 340 },
   { type: LONGHORN_RESOURCES.SETTINGS, weight: 320 },
@@ -63,6 +64,33 @@ export function init($plugin: any, store: any) {
     route: {
       name: `c-cluster-${PRODUCT_NAME}-dashboard`,
       params: { product: PRODUCT_NAME },
+      meta: {
+        pkg: PRODUCT_NAME,
+        product: PRODUCT_NAME,
+      },
+    },
+    exact: true,
+  });
+
+  // Orphans pages
+  virtualType({
+    name: LONGHORN_PAGES.ORPHANS_REPLICA,
+    route: {
+      name: `c-cluster-${PRODUCT_NAME}-resource-orphans-replica`,
+      params: { resource: LONGHORN_RESOURCES.ORPHANS },
+      meta: {
+        pkg: PRODUCT_NAME,
+        product: PRODUCT_NAME,
+      },
+    },
+    exact: true,
+  });
+
+  virtualType({
+    name: LONGHORN_PAGES.ORPHANS_INSTANCE,
+    route: {
+      name: `c-cluster-${PRODUCT_NAME}-resource-orphans-instance`,
+      params: { resource: LONGHORN_RESOURCES.ORPHANS },
       meta: {
         pkg: PRODUCT_NAME,
         product: PRODUCT_NAME,

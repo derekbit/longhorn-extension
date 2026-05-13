@@ -1,8 +1,8 @@
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 import { VOLUME_STATE } from '@longhorn/types/volume';
 import { getVolumeStateQueryValue } from '@longhorn/utils/volume';
-import { BADGE_COLOR } from '@longhorn/types/badge';
-import { resolveKubernetesStatus } from '@longhorn/utils/json';
+import { BADGE_COLOR } from '@longhorn/types/general';
+import { resolveKubernetesStatus } from '@longhorn/utils/general';
 import LonghornModel from './longhorn';
 
 const BADGE = {
@@ -103,7 +103,7 @@ export default class VolumeModel extends LonghornModel {
     // backend-provided action list for visibility without losing menu entries.
     const baseActions = out.filter((action) => !MANUAL_ACTION_FILTERS.has(action.action));
 
-    return [
+    return this.sanitizeAvailableActions([
       ...custom,
       ...baseActions.map((action) => {
         const cloned = { ...action };
@@ -123,7 +123,7 @@ export default class VolumeModel extends LonghornModel {
 
         return cloned;
       }),
-    ];
+    ]);
   }
 
   openVolumeDialog(component) {

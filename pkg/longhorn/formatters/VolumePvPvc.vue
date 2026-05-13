@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import dayjs from 'dayjs';
-import { parseJsonObject } from '@longhorn/utils/json';
+import { parseJsonObject } from '@longhorn/utils/general';
 
 const props = defineProps({
   value: {

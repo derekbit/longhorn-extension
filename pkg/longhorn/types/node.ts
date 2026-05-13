@@ -1,4 +1,4 @@
-import { BADGE_COLOR } from '@longhorn/types/badge';
+import { BADGE_COLOR } from '@longhorn/types/general';
 
 export const CONDITION_STATUS = Object.freeze({
   TRUE: 'True',

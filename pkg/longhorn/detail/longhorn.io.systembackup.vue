@@ -9,7 +9,7 @@ import LiveDate from '@shell/components/formatter/LiveDate';
 import { useI18n } from '@shell/composables/useI18n';
 import { _VIEW } from '@shell/config/query-params';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
+import { EMPTY_DISPLAY } from '@longhorn/types/general';
 
 const VOLUME_BACKUP_POLICY_OPTIONS = (translate) => [
   { label: translate('longhorn.systemBackup.options.volumeBackupPolicy.ifNotPresent'), value: 'if-not-present' },

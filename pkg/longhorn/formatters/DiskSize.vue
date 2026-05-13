@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { bytesToGi } from '@longhorn/utils/formatter';
-import { GiB_UNIT } from '@longhorn/types/units';
+import { bytesToGi } from '@longhorn/utils/general';
+import { GiB_UNIT } from '@longhorn/types/general';
 
 const props = defineProps({
   value: {

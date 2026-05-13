@@ -2,7 +2,7 @@
 import { Card } from '@components/Card';
 import SortableTable from '@shell/components/SortableTable';
 import { CONDITION_STATUS } from '@longhorn/types/node';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
+import { EMPTY_DISPLAY } from '@longhorn/types/general';
 
 const CONDITION_TYPE = {
   READY: 'Ready',

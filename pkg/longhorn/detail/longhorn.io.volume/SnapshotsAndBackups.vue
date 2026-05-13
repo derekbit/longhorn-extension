@@ -3,7 +3,7 @@ import SortableTable from '@shell/components/SortableTable';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox';
 import { formatSi } from '@shell/utils/units';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
+import { EMPTY_DISPLAY } from '@longhorn/types/general';
 
 const ACTION_TAKE_SNAPSHOT = 'snapshotCRCreate';
 const ACTION_BACKUP = 'snapshotBackup';

@@ -7,4 +7,9 @@ export const BADGE_COLOR = Object.freeze({
   DARKER: 'bg-darker',
 });
 
-export { getBadgeColor } from '@longhorn/utils/badge';
+export const EMPTY_DISPLAY = '\u2014';
+
+export const GiB_UNIT = 'GiB';
+export const MiB_UNIT = 'MiB';
+
+export { getBadgeColor } from '@longhorn/utils/general';

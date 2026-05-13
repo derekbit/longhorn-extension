@@ -17,7 +17,7 @@ import {
   BACKING_IMAGE_EXPORT_TYPE_OPTIONS,
   BACKING_IMAGE_SOURCE_TYPE,
   BACKING_IMAGE_SOURCE_TYPE_OPTIONS,
-} from '@longhorn/types/backing-image';
+} from '@longhorn/types/backingimage';
 import { _CLONE } from '@shell/config/query-params';
 import FormValidation from '@shell/mixins/form-validation';
 

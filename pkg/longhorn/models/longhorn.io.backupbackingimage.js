@@ -1,5 +1,5 @@
 import LonghornModel from './longhorn';
-import { BADGE_COLOR } from '@longhorn/types/badge';
+import { BADGE_COLOR } from '@longhorn/types/general';
 
 const RESTORABLE_STATE = 'completed';
 const RESTORE_DISABLED_TOOLTIP = 'Only complete state backup can be restored';
@@ -22,7 +22,7 @@ export default class BackupBackingImageModel extends LonghornModel {
       out.unshift(restoreAction);
     }
 
-    return out;
+    return this.sanitizeAvailableActions(out);
   }
 
   get canRestore() {

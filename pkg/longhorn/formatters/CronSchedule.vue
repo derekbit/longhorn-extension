@@ -1,6 +1,6 @@
 <script>
 import cronstrue from 'cronstrue';
-import { EMPTY_DISPLAY } from '@longhorn/types/display';
+import { EMPTY_DISPLAY } from '@longhorn/types/general';
 
 export default {
   props: {

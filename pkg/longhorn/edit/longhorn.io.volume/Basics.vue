@@ -8,7 +8,7 @@ import { VOLUME_SOURCE_TYPE, DATA_ENGINE_V1, DATA_ENGINE_V2 } from '@longhorn/ty
 import { buildVolumeDataSource, parseVolumeDataSource, getFrontendOptions } from '@longhorn/utils/volume';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { GiB_UNIT, MiB_UNIT } from '@longhorn/types/units';
+import { GiB_UNIT, MiB_UNIT } from '@longhorn/types/general';
 import { _CREATE } from '@shell/config/query-params';
 
 export default {

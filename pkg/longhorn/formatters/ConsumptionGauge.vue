@@ -3,8 +3,8 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import PercentageBar from '@shell/components/PercentageBar';
 import { useI18n } from '@shell/composables/useI18n';
-import { bytesToGi } from '@longhorn/utils/formatter';
-import { GiB_UNIT } from '@longhorn/types/units';
+import { bytesToGi } from '@longhorn/utils/general';
+import { GiB_UNIT } from '@longhorn/types/general';
 import { formatPercent } from '@shell/utils/string';
 
 const props = defineProps({

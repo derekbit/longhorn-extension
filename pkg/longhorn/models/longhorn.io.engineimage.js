@@ -1,7 +1,7 @@
 import LonghornModel from './longhorn';
 import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
-import { BADGE_COLOR } from '@longhorn/types/badge';
+import { BADGE_COLOR } from '@longhorn/types/general';
 
 export default class EngineImageModel extends LonghornModel {
   // State mapping specific to EngineImage
@@ -14,7 +14,7 @@ export default class EngineImageModel extends LonghornModel {
   }
 
   get availableActions() {
-    const availableActions = super._availableActions
+    const availableActions = (super._availableActions || [])
       .filter((action) => ![AVAILABLE_ACTIONS.CLONE].includes(action.action))
       .map((action) => {
         if (action.action === AVAILABLE_ACTIONS.DELETE) {
@@ -24,7 +24,7 @@ export default class EngineImageModel extends LonghornModel {
         return action;
       });
 
-    return availableActions;
+    return this.sanitizeAvailableActions(availableActions);
   }
 
   get image() {
