@@ -14,3 +14,5 @@ description: Rancher UI Extension for Longhorn
 name: longhorn
 type: application
 version: 0.1.0
+icon: >-
+  https://raw.githubusercontent.com/rancher/longhorn-ui-extension/main/pkg/longhorn/icon.png
