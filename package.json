@@ -25,6 +25,7 @@
     "serve-pkgs": "./node_modules/@rancher/shell/scripts/serve-pkgs",
     "publish-pkgs": "./node_modules/@rancher/shell/scripts/extension/publish",
     "parse-tag-name": "./node_modules/@rancher/shell/scripts/extension/parse-tag-name",
+    "agents:generate": "./scripts/generate-agents.sh",
     "format": "prettier --write \"**/*.{js,ts,vue,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,ts,vue,json,md}\"",
     "lint": "eslint \"pkg/longhorn/**/*.{js,ts,vue}\"",
