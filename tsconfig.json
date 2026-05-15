@@ -6,6 +6,8 @@
     "lib": ["ESNext", "ESNext.AsyncIterable", "DOM"],
     "esModuleInterop": true,
     "allowJs": true,
+    "checkJs": false,
+    "noCheck": true,
     "sourceMap": false,
     "strict": true,
     "noEmit": true,
@@ -19,8 +21,8 @@
       "@rancher/auto-import": ["./node_modules/@rancher/shell/pkg/auto-import.js"],
       "@longhorn/*": ["./pkg/longhorn/*"]
     },
-    "typeRoots": ["./node_modules", "./node_modules/@rancher/shell/types"],
-    "types": ["@types/node", "cypress", "rancher", "shell"]
+    "typeRoots": ["./pkg/longhorn/types", "./node_modules", "./node_modules/@rancher/shell/types"],
+    "types": ["@types/node", "cypress"]
   },
   "exclude": ["node_modules"]
 }

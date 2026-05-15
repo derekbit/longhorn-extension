@@ -49,7 +49,7 @@ yarn build-pkg longhorn
 
 ```bash
 yarn serve-pkgs        # Serve built packages locally
-yarn publish-pkgs      # Publish to repository
+yarn publish-pkgs      # Publish extension packages to the repository branch
 ```
 
 ## Development Standards
@@ -63,18 +63,24 @@ yarn lint:fix
 yarn build
 ```
 
+## Install in Rancher
+
+To install the Longhorn UI Extension from Rancher:
+
+1. In Rancher, open the Extensions page from the side navigation.
+2. Open the action menu in the top-right corner and select `Manage Repositories`.
+3. Click `Add Repository` and select `Git Repository`.
+4. Use the following values:
+   - Name: `longhorn`
+   - Git Repo URL: `https://github.com/rancher/longhorn-ui-extension.git`
+   - Git Branch: `gh-pages`
+
+5. Navigate back to the Extensions page.
+6. Find the Longhorn card and install the extension.
+
 ## Contributing
 
 Contributions are welcome! Please follow the [Longhorn contributing guidelines](https://github.com/longhorn/longhorn#community).
-
-### Pull Request Process
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/your-feature`
-3. Make changes following the code style guidelines
-4. Commit with conventional commit format
-5. Push to your fork
-6. Open a pull request with detailed description
 
 ## License
 
@@ -97,4 +103,4 @@ limitations under the License.
 - **Website**: https://longhorn.io
 - **Documentation**: https://longhorn.io/docs/
 - **GitHub**: https://github.com/longhorn/longhorn
-- **Rancher Dahboard**: https://github.com/rancher/dashboard
+- **Rancher Dashboard**: https://github.com/rancher/dashboard

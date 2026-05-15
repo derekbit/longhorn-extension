@@ -48,21 +48,23 @@ export function init($plugin: any, store: any) {
 
   // ----- Product Configuration ----- //
   product({
-    ifHaveGroup: 'longhorn.io',
+    labelKey: 'longhorn.name',
     removable: true,
     public: true,
     icon: 'longhorn',
     inStore: 'cluster',
     inExplorer: false,
     namespace: LONGHORN_NAMESPACE,
+    ifHaveGroup: null,
   });
 
   // ----- Pages ----- //
-  // Dashboard
   virtualType({
     name: LONGHORN_PAGES.DASHBOARD,
+    // Show Dashboard only after Longhorn CRDs are available.
+    ifHaveType: LONGHORN_RESOURCES.SETTINGS,
     route: {
-      name: `c-cluster-${PRODUCT_NAME}-dashboard`,
+      name: `c-cluster-${PRODUCT_NAME}`,
       params: { product: PRODUCT_NAME },
       meta: {
         pkg: PRODUCT_NAME,
@@ -75,6 +77,7 @@ export function init($plugin: any, store: any) {
   // Orphans pages
   virtualType({
     name: LONGHORN_PAGES.ORPHANS_REPLICA,
+    ifHaveType: LONGHORN_RESOURCES.ORPHANS,
     route: {
       name: `c-cluster-${PRODUCT_NAME}-resource-orphans-replica`,
       params: { resource: LONGHORN_RESOURCES.ORPHANS },
@@ -88,6 +91,7 @@ export function init($plugin: any, store: any) {
 
   virtualType({
     name: LONGHORN_PAGES.ORPHANS_INSTANCE,
+    ifHaveType: LONGHORN_RESOURCES.ORPHANS,
     route: {
       name: `c-cluster-${PRODUCT_NAME}-resource-orphans-instance`,
       params: { resource: LONGHORN_RESOURCES.ORPHANS },

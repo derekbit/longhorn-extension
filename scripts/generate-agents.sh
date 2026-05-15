@@ -42,9 +42,13 @@ cat >> "${OUTPUT_FILE}" << 'EOF'
 **Version**: 1.0
 EOF
 
+# Keep CLAUDE.md and GEMINI.md aligned with AGENTS.md
+ln -sf ./AGENTS.md "${PROJECT_ROOT}/CLAUDE.md"
+ln -sf ./AGENTS.md "${PROJECT_ROOT}/GEMINI.md"
+
 echo "Done. Generated ${OUTPUT_FILE}"
 echo ""
 echo "Next steps:"
 echo "  1. Review the generated AGENTS.md"
-echo "  2. Create symlinks: ln -sf ./AGENTS.md CLAUDE.md && ln -sf ./AGENTS.md GEMINI.md"
-echo "  3. Commit all files: git add docs/agents/ AGENTS.md CLAUDE.md GEMINI.md"
+echo "  2. Verify symlinks: ls -l CLAUDE.md GEMINI.md AGENTS.md"
+echo "  3. Commit all files: git add docs/agents/ AGENTS.md CLAUDE.md GEMINI.md scripts/generate-agents.sh"

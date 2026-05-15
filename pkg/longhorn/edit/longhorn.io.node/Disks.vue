@@ -6,7 +6,6 @@ import LabelValue from '@shell/components/LabelValue';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import Banner from '@components/Banner/Banner';
 import { RadioGroup } from '@components/Form/Radio';
 import { BadgeState } from '@components/BadgeState';
 import { bytesToGi } from '@longhorn/utils/general';
@@ -22,7 +21,6 @@ export default {
     ArrayList,
     LabelValue,
     ArrayListGrouped,
-    Banner,
   },
   props: {
     mode: {
@@ -154,6 +152,7 @@ export default {
                 :label="t('longhorn.node.form.diskPath')"
                 :mode="mode"
                 :disabled="mode === _VIEW || !value.spec.disks[disk.id].isNew"
+                :required="true"
                 :rules="rules[disk.id]?.path || []"
               />
               <UnitInput

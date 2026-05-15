@@ -1,6 +1,6 @@
 {
   "name": "longhorn",
-  "description": "Rancher UI Extension for Longhorn",
+  "description": "Longhorn extension for Rancher Manager",
   "version": "0.1.0",
   "private": false,
   "rancher": {
@@ -10,7 +10,7 @@
       "catalog.cattle.io/ui-extensions-version": ">= 3.0.0 < 4.0.0"
     }
   },
-  "icon": "https://raw.githubusercontent.com/houhoucoop/longhorn-extension/main/pkg/longhorn/icon.png",
+  "icon": "https://raw.githubusercontent.com/rancher/longhorn-ui-extension/main/pkg/longhorn/assets/images/longhorn.svg",
   "scripts": {},
   "engines": {
     "node": ">=24.0.0"

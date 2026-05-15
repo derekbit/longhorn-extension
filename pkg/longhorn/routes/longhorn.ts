@@ -7,7 +7,7 @@ import ViewLonghornNamespacedResource from '@longhorn/pages/c/_cluster/_resource
 
 const routes = [
   {
-    name: `c-cluster-${PRODUCT_NAME}-dashboard`,
+    name: `c-cluster-${PRODUCT_NAME}`,
     path: `/c/:cluster/${PRODUCT_NAME}`,
     component: Dashboard,
     meta: { product: PRODUCT_NAME, pkg: PRODUCT_NAME },
@@ -55,7 +55,7 @@ const routes = [
   },
   {
     name: `c-cluster-${PRODUCT_NAME}-resource-namespace-id`,
-    path: `/:cluster/${PRODUCT_NAME}/:resource/:namespace/:id`,
+    path: `/c/:cluster/${PRODUCT_NAME}/:resource/:namespace/:id`,
     component: ViewLonghornNamespacedResource,
     meta: { product: PRODUCT_NAME, pkg: PRODUCT_NAME },
   },

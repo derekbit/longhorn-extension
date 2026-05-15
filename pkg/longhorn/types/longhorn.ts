@@ -1,7 +1,6 @@
-export const PRODUCT_NAME = 'longhorn-extension';
+export const PRODUCT_NAME = 'longhorn';
 
 export const LONGHORN_NAMESPACE = 'longhorn-system';
-export const LONGHORN_DASHBOARD = 'dashboard';
 
 export const LONGHORN_PAGES = Object.freeze({
   DASHBOARD: 'Dashboard',

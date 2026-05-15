@@ -24,6 +24,13 @@ validation:
 error:
   fetchError: 'Error loading data: {message}'
 longhorn:
+  name: Longhorn
+  install:
+    title: Longhorn
+    description: 'Longhorn is a cloud-native distributed block storage for Kubernetes. It helps with keeping your Kubernetes clusters resilient and reliable. Longhorn is designed to provide persistent storage for stateful applications running in Kubernetes.'
+    button: Install Longhorn
+    chartNotFound: Longhorn chart not found in repository
+    versionNotFound: Could not find the latest version of Longhorn chart
   replica:
     table:
       header:

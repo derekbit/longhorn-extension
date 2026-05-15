@@ -58,3 +58,27 @@
    - Never add, remove, or update dependencies
    - Never run `yarn add`, `yarn remove`, or `yarn upgrade`
    - If a dependency is needed, inform the user and let them add it manually
+
+## Execution Principles (High Signal)
+
+Use these as lightweight guardrails for non-trivial tasks.
+
+1. **Think Before Coding**
+   - State assumptions when requirements are ambiguous
+   - Ask for clarification before implementing uncertain behavior
+   - Prefer explicit tradeoffs over silent guesses
+
+2. **Simplicity First**
+   - Implement the smallest change that solves the request
+   - Avoid speculative abstractions and optionality not requested
+   - If two approaches work, choose the one with fewer moving parts
+
+3. **Surgical Changes**
+   - Keep edits directly tied to the request
+   - Do not refactor adjacent code unless required for correctness
+   - Clean up only artifacts introduced by your own change
+
+4. **Goal-Driven Verification**
+   - Define success criteria before editing (e.g., lint/type-check/tests)
+   - Verify with project commands after edits
+   - Report what was verified and what was not run
