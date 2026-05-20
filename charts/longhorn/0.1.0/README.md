@@ -1,31 +1,35 @@
 # Longhorn
 
-Rancher extension for managing Longhorn storage resources from the Rancher UI.
+**Operate Longhorn storage with speed and confidence from within Rancher.**
 
-This extension adds Longhorn-focused pages and actions so operators can manage storage workflows without leaving Rancher.
+### Overview
 
-## What This Extension Adds
+The Longhorn extension brings storage operations into the Rancher experience, giving platform teams a unified place to monitor, manage, and maintain Longhorn resources.
 
-- Volume lifecycle operations (create, inspect, expand, delete)
-- Snapshot and backup related views
-- Node and disk capacity and health visibility for Longhorn resources
-- Recurring job and engine image management entry points
+Documentation for Longhorn can be found [here](https://longhorn.io/docs/).
 
-## Prerequisites
+### Core Architecture
 
-- Rancher: >= v2.14.0
-- UI Extensions API: >= 3.0.0 and < 4.0.0
-- Longhorn installed in the target cluster
+Built on Rancher UI Extensions APIs, this extension maps Longhorn models, edit flows, and detail views directly into Rancher navigation. It is designed for existing Longhorn deployments and focuses on day-2 operations, not Longhorn installation.
 
-Note: This extension does not install Longhorn itself. It provides UI and management flows for existing Longhorn deployments.
+### Key Technical Features
 
-## Should I Install This?
+- **Unified Storage Operations**: Manage the full volume lifecycle, including create, inspect, expand, and delete actions, without leaving Rancher.
+- **Data Protection Visibility**: Access snapshot and backup views from a single operational surface.
+- **Infrastructure Awareness**: Track Longhorn node and disk capacity and health to make safer storage decisions.
+- **Operational Controls**: Work with recurring jobs and engine image management through dedicated Longhorn workflows.
 
-Install this extension if you operate Longhorn and want to manage it in Rancher UI.
+### Target Use Cases
 
-You can skip this extension if Longhorn is not part of your storage stack.
+- **Platform Operations Teams**: Standardize Longhorn administration in Rancher for faster, more consistent day-to-day operations.
+- **Multi-Cluster Environments**: Apply the same storage management experience across clusters where Longhorn is deployed.
 
-## Support
+### Deployment Path
+
+- **Prerequisites**: Rancher >= v2.14.0; UI Extensions API >= 3.0.0 and < 4.0.0; Longhorn installed in the target cluster.
+- **First Step**: Install the Longhorn extension in Rancher, then open the Longhorn pages to start operating existing storage resources.
+
+### Support
 
 - Longhorn documentation: https://longhorn.io/docs/
 - Issues and feature requests: https://github.com/rancher/longhorn-ui-extension/issues
