@@ -13,13 +13,13 @@ entries:
       catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
     apiVersion: v2
     appVersion: 0.1.0
-    created: "2026-05-20T07:10:31.121236054Z"
+    created: "2026-05-20T07:17:23.001588997Z"
     description: Rancher UI Extension for Longhorn
-    digest: 87cf09c91130a1ae2efadb760b3e8f1cba6947f0b6482ab975c7d446e71f5d2c
-    icon: https://github.com/rancher/longhorn-ui-extension/blob/main/pkg/longhorn/assets/images/longhorn.svg?raw=1
+    digest: 6dbbbe8adb8d0a2043f06f65d6e711f564f9591b3df82f55ce74230519b857c6
+    icon: https://raw.githubusercontent.com/rancher/longhorn-ui-extension/main/pkg/longhorn/assets/images/longhorn.svg
     name: longhorn
     type: application
     urls:
     - assets/longhorn/longhorn-0.1.0.tgz
     version: 0.1.0
-generated: "2026-05-20T07:10:31.120418239Z"
+generated: "2026-05-20T07:17:23.001209805Z"

@@ -15,4 +15,4 @@ name: longhorn
 type: application
 version: 0.1.0
 icon: >-
-  https://github.com/rancher/longhorn-ui-extension/blob/main/pkg/longhorn/assets/images/longhorn.svg?raw=1
+  https://raw.githubusercontent.com/rancher/longhorn-ui-extension/main/pkg/longhorn/assets/images/longhorn.svg
