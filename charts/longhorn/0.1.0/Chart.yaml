@@ -10,7 +10,7 @@ annotations:
   catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
 apiVersion: v2
 appVersion: 0.1.0
-description: Rancher UI Extension for Longhorn
+description: Longhorn extension for Rancher Manager
 name: longhorn
 type: application
 version: 0.1.0

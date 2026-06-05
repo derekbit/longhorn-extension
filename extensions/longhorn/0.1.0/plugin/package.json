@@ -1,6 +1,6 @@
 {
   "name": "longhorn",
-  "description": "Rancher UI Extension for Longhorn",
+  "description": "Longhorn extension for Rancher Manager",
   "version": "0.1.0",
   "private": false,
   "rancher": true,
