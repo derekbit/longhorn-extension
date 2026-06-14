@@ -4,9 +4,9 @@ plugin:
   enabled: true
   versionOverride: ""
   endpoint: >-
-    https://raw.githubusercontent.com/houhoucoop/longhorn-extension/gh-pages-dev/extensions/longhorn/0.1.0
+    https://raw.githubusercontent.com/houhoucoop/longhorn-extension/gh-pages-dev-1/extensions/longhorn/0.1.0
   compressedEndpoint: >-
-    https://raw.githubusercontent.com/houhoucoop/longhorn-extension/gh-pages-dev/extensions/longhorn/0.1.0.tgz
+    https://raw.githubusercontent.com/houhoucoop/longhorn-extension/gh-pages-dev-1/extensions/longhorn/0.1.0.tgz
   noCache: false
   noAuth: false
   metadata:
