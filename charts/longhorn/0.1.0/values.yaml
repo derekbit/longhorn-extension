@@ -3,8 +3,10 @@ fullnameOverride: ""
 plugin:
   enabled: true
   versionOverride: ""
-  endpoint: https://raw.githubusercontent.com/build/main/extensions/longhorn/0.1.0
-  compressedEndpoint: https://raw.githubusercontent.com/build/main/extensions/longhorn/0.1.0.tgz
+  endpoint: >-
+    https://raw.githubusercontent.com/derekbit/longhorn-extension/gh-pages-dev-1/extensions/longhorn/0.1.0
+  compressedEndpoint: >-
+    https://raw.githubusercontent.com/derekbit/longhorn-extension/gh-pages-dev-1/extensions/longhorn/0.1.0.tgz
   noCache: false
   noAuth: false
   metadata:
