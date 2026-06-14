@@ -13,13 +13,13 @@ entries:
       catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
     apiVersion: v2
     appVersion: 0.1.0
-    created: "2026-06-14T16:56:53.498553035+08:00"
+    created: "2026-06-14T20:43:34.346710911+08:00"
     description: Longhorn extension for Rancher Manager
-    digest: fe11dec97efeee5f9ee90d8345e15672d9c797a7808a6a12ecccd3e3153fcc68
+    digest: dda090e450306cb724a090ca075a74d9b1085839c6c58df2432e81529c9a8fed
     icon: https://raw.githubusercontent.com/rancher/longhorn-ui-extension/main/pkg/longhorn/assets/images/longhorn.svg
     name: longhorn
     type: application
     urls:
     - assets/longhorn/longhorn-0.1.0.tgz
     version: 0.1.0
-generated: "2026-06-14T16:56:53.498333978+08:00"
+generated: "2026-06-14T20:43:34.346501602+08:00"
