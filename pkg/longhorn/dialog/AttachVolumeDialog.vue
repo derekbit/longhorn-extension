@@ -72,9 +72,41 @@ onMounted(async () => {
 });
 
 async function submit(buttonDone) {
-  // TODO: implement attach
-  // Call volume.value.doAction('attach', { hostId, disableFrontend, attachedBy, attacherType, attachmentID })
-  buttonDone(false);
+  errors.value = [];
+
+  if (!selectedNodeId.value) {
+    errors.value = [t('longhorn.volume.dialog.attach.errors.nodeRequired')];
+    buttonDone(false);
+
+    return;
+  }
+
+  const target = volume.value;
+
+  if (!target) {
+    errors.value = ['Volume not found'];
+    buttonDone(false);
+
+    return;
+  }
+
+  try {
+    await target.doAction('attach', {
+      hostId:          selectedNodeId.value,
+      disableFrontend: disableFrontend.value,
+      attachedBy:      'longhorn-ui',
+      attacherType:    'longhorn-api',
+      attachmentID:    `longhorn-ui-${ target.metadata?.name || target.id }`,
+    });
+
+    buttonDone(true);
+    close();
+  } catch (e) {
+    const message = e?._message || e?.message || (typeof e === 'string' ? e : JSON.stringify(e));
+
+    errors.value = [message];
+    buttonDone(false);
+  }
 }
 </script>
 
