@@ -8,6 +8,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { useI18n } from '@shell/composables/useI18n';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 
 const props = defineProps({
@@ -42,7 +43,11 @@ const maintenanceForced = computed(() => isRwxNonMigratable.value);
 const nodeOptions = computed(() => {
   return nodes.value
     .filter((nodeResource) => nodeResource.isReady)
-    .map((nodeResource) => ({ label: nodeResource.id, value: nodeResource.id }));
+    .map((nodeResource) => {
+      const nodeName = nodeResource.metadata?.name || nodeResource.id;
+
+      return { label: nodeName, value: nodeName };
+    });
 });
 
 function close() {
@@ -72,9 +77,39 @@ onMounted(async () => {
 });
 
 async function submit(buttonDone) {
-  // TODO: implement attach
-  // Call volume.value.doAction('attach', { hostId, disableFrontend, attachedBy, attacherType, attachmentID })
-  buttonDone(false);
+  errors.value = [];
+
+  if (!selectedNodeId.value) {
+    errors.value = [t('longhorn.volume.dialog.attach.errors.nodeRequired')];
+    buttonDone(false);
+
+    return;
+  }
+
+  const target = volume.value;
+
+  if (!target) {
+    errors.value = ['Volume not found'];
+    buttonDone(false);
+
+    return;
+  }
+
+  try {
+    await target.doAction('attach', {
+      hostId: selectedNodeId.value,
+      disableFrontend: disableFrontend.value,
+      attachedBy: 'longhorn-ui',
+      attacherType: 'longhorn-api',
+      attachmentID: 'longhorn-ui',
+    });
+
+    buttonDone(true);
+    close();
+  } catch (err) {
+    errors.value = exceptionToErrorsArray(err);
+    buttonDone(false);
+  }
 }
 </script>
 

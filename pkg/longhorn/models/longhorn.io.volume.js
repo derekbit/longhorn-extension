@@ -29,7 +29,7 @@ const ROBUSTNESS = {
 
 const VOLUME_ACTION = {
   ATTACH: 'promptAttach',
-  DETACH: 'detachVolume',
+  DETACH: 'promptDetach',
   ENGINE_UPGRADE: 'engineUpgrade',
   TRIM_FILESYSTEM: 'trimFilesystem',
   PV_AND_PVC_CREATE: 'pvAndpvcCreate',
@@ -42,11 +42,15 @@ const MANUAL_ACTION_FILTERS = new Set([
   VOLUME_ACTION.TRIM_FILESYSTEM,
   VOLUME_ACTION.BACKEND_PV_CREATE,
   VOLUME_ACTION.BACKEND_PVC_CREATE,
+  // Salvage requires choosing failed replicas; hide until a dedicated dialog exists.
+  'salvage',
 ]);
 
 const VOLUME_DIALOG = {
   ATTACH: 'AttachVolumeDialog',
+  DETACH: 'DetachVolumeDialog',
   CREATE_PV_AND_PVC: 'CreatePVAndPVCDialog',
+  ENGINE_UPGRADE: 'EngineUpgradeDialog',
 };
 
 export default class VolumeModel extends LonghornModel {
@@ -112,9 +116,6 @@ export default class VolumeModel extends LonghornModel {
           case 'cloneYaml':
             cloned.enabled = !isLocked;
             break;
-          case 'salvage':
-            cloned.enabled = !this.isRestoring;
-            break;
           case 'goToEditYaml':
           case 'goToEdit':
             if (this.isFaulted) cloned.enabled = false;
@@ -137,24 +138,16 @@ export default class VolumeModel extends LonghornModel {
     this.openVolumeDialog(VOLUME_DIALOG.ATTACH);
   }
 
-  detachVolume() {
-    // TODO: implement detach
-    // Use volume API action: this.doAction('detach', { attachmentID, hostId, forceDetach })
+  promptDetach() {
+    this.openVolumeDialog(VOLUME_DIALOG.DETACH);
   }
 
   engineUpgrade() {
-    // TODO: implement engine upgrade
-    // Use volume API action: this.doAction('engineUpgrade', { image })
+    this.openVolumeDialog(VOLUME_DIALOG.ENGINE_UPGRADE);
   }
 
-  salvage() {
-    // TODO: implement salvage
-    // Use volume API action: this.doAction('salvage', { names })
-  }
-
-  trimFilesystem() {
-    // TODO: implement trim filesystem
-    // Use volume API action: this.doAction('trimFilesystem')
+  async trimFilesystem() {
+    return this.doAction('trimFilesystem', {});
   }
 
   pvAndpvcCreate() {

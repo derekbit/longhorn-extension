@@ -211,6 +211,14 @@ longhorn:
         rwxWarning: RWX volumes can only be manually attached in maintenance mode.
         errors:
           nodeRequired: Please select a node to attach
+      detach:
+        title: 'Detach volume "{name}"?'
+        actions:
+          detach: Detach
+        form:
+          forceDetach: Force Detach
+        csiWarning: Forcing this volume to detach could break its connection to Kubernetes VolumeAttachment resources. This may prevent applications from attaching volumes correctly, potentially causing Pods to fail or leading to data loss.
+        podWarning: Detaching a volume while it is being used by a running Kubernetes Pod will crash the Pod and may cause data loss. The volume cannot be reused by Kubernetes until the original Pod is deleted.
       engineUpgrade:
         title: Upgrade Engine Image
         actions:

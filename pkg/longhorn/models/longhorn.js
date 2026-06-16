@@ -20,6 +20,46 @@ const DEFAULT_STATE_MAP = {
 };
 
 export default class LonghornModel extends SteveModel {
+  async doAction(actionName, body, opt = {}) {
+    if (this.hasAction(actionName)) {
+      return super.doAction(actionName, body, opt);
+    }
+
+    // Websocket watch events are served from the local cluster-agent cache, which
+    // does not run the longhorn-manager Steve action bridge, so a resource updated
+    // via watch loses its backend action links. Re-fetch from longhorn-manager to
+    // restore them before performing the action.
+    const refreshed = await this.refreshBackendActions();
+
+    if (refreshed && refreshed.hasAction(actionName)) {
+      return super.doAction.call(refreshed, actionName, body, opt);
+    }
+
+    const id = this.metadata?.name || this.id || '';
+
+    return Promise.reject(
+      new Error(
+        `Action "${actionName}" is not available on "${id}". Ensure longhorn-manager Steve action bridge is active.`
+      )
+    );
+  }
+
+  async refreshBackendActions() {
+    if (!this.id || !this.type) {
+      return null;
+    }
+
+    try {
+      return await this.$dispatch('find', {
+        type: this.type,
+        id: this.id,
+        opt: { force: true, watch: false },
+      });
+    } catch {
+      return null;
+    }
+  }
+
   sanitizeAvailableActions(actions = []) {
     return sanitizeAvailableActions(actions);
   }
